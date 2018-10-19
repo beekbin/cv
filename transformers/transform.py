@@ -14,8 +14,23 @@ import warnings
 import matplotlib.pyplot as plt
 import logging
 
-log = logging.getLogger("rotate-image")
+log = logging.getLogger(__file__)
 log.setLevel(logging.DEBUG)
+
+
+## references
+## 1. Inspired by TorchVision
+##    https://github.com/pytorch/vision/tree/master/torchvision/transforms
+## 2. Implement based on Yu-Zhiyang's project
+##    https://github.com/YU-Zhiyang/opencv_transforms_torchvision/tree/master/cvtorchvision
+## 3. OpenCV Vs. PIL: OpenCV2 is about 3+ times faster than PIL.
+##    https://www.kaggle.com/vfdev5/pil-vs-opencv
+
+
+## New
+## 1. Remove torch dependence, so it can be used for Caffe2, pytorch, or other DL frameworks;
+## 2. Add perspective adjustment; 
+
 
 def setupLog():
     """
@@ -241,7 +256,7 @@ def gradualShade(img, brightness, direction='lr'):
 
 
 def crop(img, size, point=(0, 0)):
-    """"""
+    """crop a rectangle region from point with size(w, h)."""
     y, x = point
     w, h = size
     hf, wf, _ = img.shape
@@ -256,7 +271,7 @@ def crop(img, size, point=(0, 0)):
 
     x2 = min(x + h, hf) - 1
     y2 = min(y + w, wf) - 1
-    log.info("w = %d, x2=%d, %s"%(w, x2, img.shape))
+    log.debug("w = %d, x2=%d, %s"%(w, x2, img.shape))
     img2 = img[x:x2, y:y2, :].copy()
     return img2
 
@@ -335,8 +350,7 @@ def adjustPerspective(img, fac=0.15):
     pts2 = np.float32([[dw/2, dh/2], [w-dw, dh], [0, h], [w-dw/2, h-dh/2]])
     views.append(pts2)
 
-    
-    pts2 = views[4]
+    pts2 = views[random.randint(0, len(views) - 1)]
     fcolor = _genRandomColor()
     M = cv2.getPerspectiveTransform(pts1, pts2)
     img2 = cv2.warpPerspective(img, M, (w, h), borderValue=fcolor)
@@ -390,7 +404,7 @@ def tranImgs(imgs):
 
 
 def test():
-    #fname = "./data/driver/songbin2.png"
+    #fname = "../data/driver/songbin2.png"
     fname = "../data/driver/california.png"
     img = loadImage(fname)
     #showImg(img, "Songbin")
