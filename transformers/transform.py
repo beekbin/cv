@@ -139,6 +139,7 @@ def simpleRotate(img, angle, scale=0.85):
     h, w, _ = img.shape
     center = (w/2, h/2)
     tmp = cv2.getRotationMatrix2D(center, angle, scale)
+
     img2 = cv2.warpAffine(img, tmp, (w, h), borderValue=fcolor)
     return img2
 
@@ -288,7 +289,7 @@ def _genRandomColor():
 
 
 def adjustPerspective(img, fac=0.15):
-    """change perspective
+    """approximatively perspective change.
     fac should be [0.05, 0.2]
     https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_geometric_transformations/py_geometric_transformations.html
     TODO: a single parameter indicate the one of the 8 perspectives.
@@ -340,9 +341,94 @@ def adjustPerspective(img, fac=0.15):
     pts2 = views[random.randint(0, len(views) - 1)]
     fcolor = _genRandomColor()
     M = cv2.getPerspectiveTransform(pts1, pts2)
-    img2 = cv2.warpPerspective(img, M, (w, h), borderValue=fcolor)
+    img2 = cv2.warpPerspective(img, M, (w, h), borderMode=cv2.BORDER_CONSTANT, borderValue=fcolor)
 
     ##  get it back
     #M = cv2.getPerspectiveTransform(pts2, pts1)
     #img3 = cv2.warpPerspective(img2, M, (w, h))
     return img2
+
+
+def adjustPerspectiveX(img, fov=45, anglex=0, angley=0, anglez=0, shear=0,
+                translate=(0, 0), scale=(0.85, 0.85), resample=cv2.INTER_LINEAR, fillcolor=None):
+    """
+    Precisely perspective change.
+    This function is from YU-Zhiyang
+    ##    https://github.com/YU-Zhiyang/opencv_transforms_torchvision/tree/master/cvtorchvision
+    """
+
+    imgtype = img.dtype
+    h, w, _ = img.shape
+    centery = h * 0.5
+    centerx = w * 0.5
+
+    alpha = math.radians(shear)
+    beta = math.radians(anglez)
+
+    lambda1 = scale[0]
+    lambda2 = scale[1]
+
+    tx = translate[0]
+    ty = translate[1]
+
+    sina = math.sin(alpha)
+    cosa = math.cos(alpha)
+    sinb = math.sin(beta)
+    cosb = math.cos(beta)
+
+    M00 = cosb * (lambda1 * cosa ** 2 + lambda2 * sina ** 2) - sinb * (lambda2 - lambda1) * sina * cosa
+    M01 = - sinb * (lambda1 * sina ** 2 + lambda2 * cosa ** 2) + cosb * (lambda2 - lambda1) * sina * cosa
+
+    M10 = sinb * (lambda1 * cosa ** 2 + lambda2 * sina ** 2) + cosb * (lambda2 - lambda1) * sina * cosa
+    M11 = + cosb * (lambda1 * sina ** 2 + lambda2 * cosa ** 2) + sinb * (lambda2 - lambda1) * sina * cosa
+    M02 = centerx - M00 * centerx - M01 * centery + tx
+    M12 = centery - M10 * centerx - M11 * centery + ty
+    affine_matrix = np.array([[M00, M01, M02], [M10, M11, M12], [0, 0, 1]], dtype=np.float32)
+    # -------------------------------------------------------------------------------
+    z = np.sqrt(w ** 2 + h ** 2) / 2 / np.tan(math.radians(fov / 2))
+
+    radx = math.radians(anglex)
+    rady = math.radians(angley)
+
+    sinx = math.sin(radx)
+    cosx = math.cos(radx)
+    siny = math.sin(rady)
+    cosy = math.cos(rady)
+
+    r = np.array([[cosy, 0, -siny, 0],
+                  [-siny * sinx, cosx, -sinx * cosy, 0],
+                  [cosx * siny, sinx, cosx * cosy, 0],
+                  [0, 0, 0, 1]])
+
+    pcenter = np.array([centerx, centery, 0, 0], np.float32)
+
+    p1 = np.array([0, 0, 0, 0], np.float32) - pcenter
+    p2 = np.array([w, 0, 0, 0], np.float32) - pcenter
+    p3 = np.array([0, h, 0, 0], np.float32) - pcenter
+    p4 = np.array([w, h, 0, 0], np.float32) - pcenter
+
+    dst1 = r.dot(p1)
+    dst2 = r.dot(p2)
+    dst3 = r.dot(p3)
+    dst4 = r.dot(p4)
+
+    list_dst = [dst1, dst2, dst3, dst4]
+
+    org = np.array([[0, 0],
+                    [w, 0],
+                    [0, h],
+                    [w, h]], np.float32)
+
+    dst = np.zeros((4, 2), np.float32)
+
+    for i in range(4):
+        dst[i, 0] = list_dst[i][0] * z / (z - list_dst[i][2]) + pcenter[0]
+        dst[i, 1] = list_dst[i][1] * z / (z - list_dst[i][2]) + pcenter[1]
+
+    perspective_matrix = cv2.getPerspectiveTransform(org, dst)
+    total_matrix = perspective_matrix @ affine_matrix
+
+    fcolor = _genRandomColor()
+    result_img = cv2.warpPerspective(img, total_matrix, (w, h), flags=resample,
+                                     borderMode=cv2.BORDER_CONSTANT, borderValue=fcolor)
+    return result_img.astype(imgtype)
