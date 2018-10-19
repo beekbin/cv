@@ -61,15 +61,17 @@ def tranImgs(imgs):
         #img2 = tr.adjustHue(img, 0.2)
         #img2 = tr.adjustGamma(img, 1.5)
         
+        #img2 = tr.gradualShade(img, 0.9, 0, 1)
+        img2 = tr.gradualShade(img, 0.9, 1, 0)
+        #img2 = tr.gradualShadeV(img, 0.9, 1)
+
         #img2 = tr.simpleRotate(img, -15)
-        #img2 = tr.gradualShade(img, 0.9, "rl")
         #img2 = tr.crop(img, (1.0, 0.3), point=(0.0, 0.0))
         #img2 = tr.adjustAspectRatio(img, 2.0)
-        img2 = tr.adjustPerspectiveX(img, anglex=30, angley=-45, anglez=-30, shear=8)
-        #img2 = tr.adjustPerspective(img)
+        #img2 = tr.adjustPerspectiveX(img, anglex=30, angley=-45, anglez=-30, shear=8)
+        #img2 = tr.adjustPerspective(ig)
         tr.showImgs([img, img2])
     return
-
 
 def test():
     #fname = "../data/driver/songbin2.png"

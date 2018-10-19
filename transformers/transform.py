@@ -216,14 +216,45 @@ def adjustAspectRatio(img, ratio, bg_img=None):
     return img2
 
 
-def gradualShade(img, brightness, direction='lr'):
-    h, w, _ = img.shape
+def gradualShadeV(img, brightness, direction=0):
+    """add gradual shadow vertically.
+       direction: 0: get darker from top to bottom;
+                  1: get darker from bottom to top;
+    """
+    h, _, _ = img.shape
     img2 = np.float32(img)
 
-    if direction == "lr":
+    if direction % 2 == 0:
         alpha = -1.0 * brightness/5
         sign = -1
-    elif direction == "rl":
+    else:
+        alpha = -4.0 * brightness/5
+        sign = 1
+        
+    delta = brightness / float(h)
+
+    for j in range(h):
+        alpha += delta
+        t = 1 + sign * alpha
+        img2[j, :, :] = img2[j, :, :] * t
+
+    img2 = np.uint8(img2.clip(0, 255))
+    return img2
+
+
+def gradualShadeH(img, brightness, direction=0):
+    """
+    add gradual shadow horizontally.
+    direction: 0: get darker from left to right;
+               1: get darker from right to left;
+    """
+    _, w, _ = img.shape
+    img2 = np.float32(img)
+
+    if direction % 2 == 0:
+        alpha = -1.0 * brightness/5
+        sign = -1
+    else:
         alpha = -4.0 * brightness/5
         sign = 1
         
@@ -232,14 +263,32 @@ def gradualShade(img, brightness, direction='lr'):
     for i in range(w):
         alpha += delta
         t = 1 + sign * alpha
-
         img2[:, i, :] = img2[:, i, :] * t
-        #for j in range(h):
-        #    for k in range(c):
-        #        img2[j, i, k] = min(img2[j, i, k] * t, 255)
-
+        
     img2 = np.uint8(img2.clip(0, 255))
     return img2
+
+
+def gradualShade(img, fac, direction1=0, direction2=1):
+    """
+    fac: [0.5, 1.1]
+    direction1: {0, 1}, 0: horizontally, 1: vertically;
+    direction2: {0, 1}, 0: left->right/top-bottom, 1: right->left/bottom->top;
+    """
+    if direction1 % 2 == 0:
+        img2 = gradualShadeH(img, fac, direction2)
+    else:
+        img2 = gradualShadeV(img, fac, direction2)
+
+    return img2
+
+
+def regionShadow(img, fac, region):
+    """
+    region:
+    
+    """
+    return
 
 
 def crop(img, size, point=(0, 0)):
