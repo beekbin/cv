@@ -349,16 +349,16 @@ def adjustPerspective(img, fac=0.15):
 
 def testImgs():
     fnames = [
-         "./data/driver/songbin.png",
-         "./data/driver/songbin2.png",
-        "./data/driver/motorist.jpg",
-        "./data/driver/minnesota.png",
-        "./data/driver/california.png",
-        "./data/driver/ny2.png",
-        "./data/driver/missi.png",
-        "./data/driver/vermont.png",
-        "./data/driver/florida.jpg",
-        "./data/driver/ma.jpg",
+         "../data/driver/songbin.png",
+         "../data/driver/songbin2.png",
+         "../data/driver/motorist.jpg",
+         "../data/driver/minnesota.png",
+         "../data/driver/california.png",
+         "../data/driver/ny2.png",
+         "../data/driver/missi.png",
+         "../data/driver/vermont.png",
+         "../data/driver/florida.jpg",
+         "../data/driver/ma.jpg",
     ]
     imgs = []
     for fname in fnames:
@@ -391,7 +391,7 @@ def tranImgs(imgs):
 
 def test():
     #fname = "./data/driver/songbin2.png"
-    fname = "./data/driver/california.png"
+    fname = "../data/driver/california.png"
     img = loadImage(fname)
     #showImg(img, "Songbin")
 
