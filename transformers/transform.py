@@ -18,7 +18,7 @@ log = logging.getLogger(__file__)
 log.setLevel(logging.DEBUG)
 
 
-## references
+## References
 ## 1. Inspired by TorchVision
 ##    https://github.com/pytorch/vision/tree/master/torchvision/transforms
 ## 2. Implement based on Yu-Zhiyang's project
@@ -32,25 +32,11 @@ log.setLevel(logging.DEBUG)
 ## 2. Add perspective adjustment; 
 
 
-def setupLog():
-    """
-    Reset logging: to make the logging.basicConfig() work again.
-
-    Step 1: remove all the root.handlers
-       logging.basicConfig() does nothing if the root logger already has handlers
-            configured for it.
-    Step 2: setup logging format
-        logging.basicConfig() will create and add a default handler to the root logger.
-    """
-    if logging.root:
-        logging.root.handlers = []
-    fmt = "%(levelname).3s[%(asctime)s %(filename)s:%(lineno)d] %(message)s"
-    dtfmt = "%Y-%m-%d %H:%M:%S"
-    logging.basicConfig(format=fmt, datefmt=dtfmt)
-    return
+## NOTE: 
+#  1. The input of the operations should be cv2 image (numpy.array);
+#  2. The output of the operations should be cv2 image (numpy.array);
 
 
-# The input of the operations should be cv2 image
 def loadImage(fname):
     img = cv2.imread(fname, cv2.IMREAD_COLOR)
     # img.shape = (w, h, 3)
@@ -334,6 +320,7 @@ def adjustPerspective(img, fac=0.15):
     ##5. from top-left to bottom-right
     pts2 = np.float32([[0, 0], [w-dw/2, dh/2], [dw/2, h-dh/2], [w-dw, h-dh]])
     views.append(pts2) 
+
     #6. from bottom-right to top-left
     pts2 = np.float32([[dw, dh], [w-dw/2, dh/2], [dw/2, h-dh/2], [w, h]]) 
     views.append(pts2)
@@ -343,11 +330,11 @@ def adjustPerspective(img, fac=0.15):
     #7. from top-right to bottom-left
     pts2 = np.float32([[dw/2, dh/2], [w, 0], [dw, h-dh], [w-dw/2, h-dh/2]])
     views.append(pts2) 
-    pts2 = np.float32([[dw/2, dh/2], [w, 0], [0, h], [w-dw/2, h-dh/2]]) 
-    views.append(pts2)
 
     #8. from bottom-left to top-right
     pts2 = np.float32([[dw/2, dh/2], [w-dw, dh], [0, h], [w-dw/2, h-dh/2]])
+    views.append(pts2)
+    pts2 = np.float32([[dw/2, dh/2], [w, 0], [0, h], [w-dw/2, h-dh/2]]) 
     views.append(pts2)
 
     pts2 = views[random.randint(0, len(views) - 1)]
@@ -359,75 +346,3 @@ def adjustPerspective(img, fac=0.15):
     #M = cv2.getPerspectiveTransform(pts2, pts1)
     #img3 = cv2.warpPerspective(img2, M, (w, h))
     return img2
-
-
-def testImgs():
-    fnames = [
-         "../data/driver/songbin.png",
-         "../data/driver/songbin2.png",
-         "../data/driver/motorist.jpg",
-         "../data/driver/minnesota.png",
-         "../data/driver/california.png",
-         "../data/driver/ny2.png",
-         "../data/driver/missi.png",
-         "../data/driver/vermont.png",
-         "../data/driver/florida.jpg",
-         "../data/driver/ma.jpg",
-    ]
-    imgs = []
-    for fname in fnames:
-        img = loadImage(fname)
-        imgs.append(img)
-
-    tranImgs(imgs)   
-    return
-
-
-def tranImgs(imgs):
-    for img in imgs:
-        img = resize(img, (480, 360))
-        #img2 = addNoise(img, sgma=5.0)
-        #img2 = adjustBrightness(img, 0.8)
-        #img2 = adjustContrast(img, 2.0)
-        #img2 = adjustSaturation(img, 4.0)
-        #img2 = adjustHue(img, 0.2)
-        #img2 = adjustGamma(img, 1.5)
-        
-        #img2 = simpleRotate(img, -15)
-        #img2 = gradualShade(img, 0.9, "rl")
-        #img2 = crop(img, (1.0, 0.3), point=(0.0, 0.0))
-        #img2 = adjustAspectRatio(img, 1.0)
-        img2 = adjustPerspective(img)
-        showImgs([img, img2])
-    return
-
-
-
-def test():
-    #fname = "../data/driver/songbin2.png"
-    fname = "../data/driver/california.png"
-    img = loadImage(fname)
-    #showImg(img, "Songbin")
-
-    #img2 = addNoise(img)
-    #showImg(img, "Noise")
-    #img2 = adjustBrightness(img, 0.8)
-    #img2 = adjustContrast(img, 2.0)
-    #img2 = adjustSaturation(img, 4.0)
-    #img2 = adjustHue(img, 0.2)
-    #img2 = adjustGamma(img, 1.5)
-    #img2 = simpleRotate(img, 8)
-    img2 = gradualShade(img, 1.1)
-    showImgs([img, img2])
-    return
-
-
-def main():
-    #test()
-    testImgs()
-    return
-
-
-if __name__ == "__main__":
-    setupLog()
-    main()
