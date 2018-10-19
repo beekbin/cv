@@ -130,20 +130,6 @@ def adjustGamma(img, gamma, gain=1):
     return img2
 
 
-def simpleRotate(img, angle, scale=0.85):
-    """angle can be [0, 360].
-    Filled with random color.
-    TODO1: automatically calculate the scale needed;
-    """
-    fcolor = _genRandomColor()
-    h, w, _ = img.shape
-    center = (w/2, h/2)
-    tmp = cv2.getRotationMatrix2D(center, angle, scale)
-
-    img2 = cv2.warpAffine(img, tmp, (w, h), borderValue=fcolor)
-    return img2
-
-
 def resize(img, size):
     return cv2.resize(img, dsize=size)
 
@@ -286,7 +272,7 @@ def gradualShade(img, fac, direction1=0, direction2=1):
 def regionShadow(img, fac, region):
     """
     region:
-    
+
     """
     return
 
@@ -312,25 +298,61 @@ def crop(img, size, point=(0, 0)):
     return img2
 
 
-def rotate2(img):
-    """TODO: change perspective"""
+def simpleRotate(img, angle, scale=0.90):
+    """
+    angle: [-180, 180];
+    scale: [0, 1.0];
+    Filled with random color.
+
+    NOTE: if rotate degree less than 90, use rotateX instead.
+    
+    TODO1: automatically calculate the scale needed;
+    """
+    if math.fabs(math.tan(angle*math.pi/180)) > 0.8:
+        if scale > 0.80:
+            scale = 0.80
+
     h, w, _ = img.shape
-    #pts1 = np.float32([[50,50],[200,50],[50,200]])
-    #pts2 = np.float32([[10,100],[200,50],[100,250]])
+    center = (w/2, h/2)
+    tmp = cv2.getRotationMatrix2D(center, angle, scale)
 
-    #pts1 = np.float32([[0, 0], [w, 0], [0, h], [w, h]])
-    #pts2 = np.float32(([0+8, 0], [w, 10], [0, h-8], [w, h]))
+    fcolor = _genRandomColor()
+    img2 = cv2.warpAffine(img, tmp, (w, h), borderValue=fcolor)
+    return img2
 
-    delta = int(0.2 * h)
-    pts1 = np.float32([[0, 0], [w, 0], [0, h]])
-    pts2 = np.float32(([delta, 0], [w, delta], [0, h-delta]))
+
+def rotateX(img, fac):
+    """
+    Rotate the image [-90, 90] degrees.
+    fac: [-0.99, 0.99]
+    """
+    if math.fabs(fac) > 0.99:
+        log.warn("fac should be [-0.99, 0.99]")
+        return img
+
+    h, w, _ = img.shape
+    dw = int(fac * h)
+    dh = int(fac * w)
+    
+    ## needs to pick three points
+    if fac > 0:
+        dh = min(dh, h)
+        pts1 = np.float32([[0, 0], [w, 0], [0, h]])
+        pts2 = np.float32([[dw, 0], [w, dh], [0, h-dh]])
+    else:
+        dw, dh = -dw, -dh
+        dh = min(dw, h)
+        pts1 = np.float32([[0, 0], [0, h], [w, h]])
+        pts2 = np.float32([[0, dh], [dw, h], [w, h-dh]])
 
     M = cv2.getAffineTransform(pts1, pts2)
-    img2 = cv2.warpAffine(img,M,(w,h))
+    fcolor = _genRandomColor()
+    img2 = cv2.warpAffine(img,M,(w,h), borderValue=fcolor) 
     return img2
 
 
 def _genRandomColor():
+    """gen a random BGR color."""
     b = random.randint(0, 255)
     g = random.randint(0, 255)
     r = random.randint(0, 255)
@@ -398,12 +420,15 @@ def adjustPerspective(img, fac=0.15):
     return img2
 
 
-def adjustPerspectiveX(img, fov=45, anglex=0, angley=0, anglez=0, shear=0,
+def adjustPerspectiveX(img, anglex=0, angley=0, anglez=0, shear=0, fov=45,
                 translate=(0, 0), scale=(0.85, 0.85), resample=cv2.INTER_LINEAR, fillcolor=None):
     """
     Precisely perspective change.
+    No need simpleRotate after this operation.
     This function is from YU-Zhiyang
-    ##    https://github.com/YU-Zhiyang/opencv_transforms_torchvision/tree/master/cvtorchvision
+        https://github.com/YU-Zhiyang/opencv_transforms_torchvision/tree/master/cvtorchvision
+
+    anglex, angley, anglez, shear: [-180, 180]
     """
 
     imgtype = img.dtype
