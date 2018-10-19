@@ -56,15 +56,15 @@ def tranImgs(imgs):
         img = tr.resize(img, (480, 360))
         #img2 = tr.addNoise(img, sigma=5.0)
         #img2 = tr.adjustBrightness(img, 0.8)
-        #img2 = tr.adjustContrast(img, 2.0)
-        #img2 = tr.adjustSaturation(img, 4.0)
+        #img2 = tr.adjustContrast(img, 0.6)
+        img2 = tr.adjustSaturation(img, 1.62)
         #img2 = tr.adjustHue(img, 0.2)
-        #img2 = tr.adjustGamma(img, 1.5)
+        img2 = tr.adjustGamma(img2, 2.4)
         
         #img2 = tr.gradualShade(img, 0.9, 1, 0)
         #img2 = tr.gradualShadeV(img, 0.9, 1)
 
-        img2 = tr.simpleRotate(img, 30)
+        #img2 = tr.simpleRotate(img, 30)
         #img2 = tr.rotateX(img, 0.98)
 
         #img2 = tr.crop(img, (1.0, 0.3), point=(0.0, 0.0))

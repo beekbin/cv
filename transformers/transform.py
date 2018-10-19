@@ -5,17 +5,12 @@ from __future__ import unicode_literals
 
 import math
 import random
+import logging
 import cv2
 import numpy as np
-import numbers
-import types
-import collections
-import warnings
 import matplotlib.pyplot as plt
-import logging
 
 log = logging.getLogger(__file__)
-log.setLevel(logging.DEBUG)
 
 
 ## References
@@ -104,6 +99,7 @@ def adjustContrast(img, fac):
 
 
 def adjustSaturation(img, fac):
+    """fac should be [0, 2.0] """
     img2 = np.float32(img)
     tmp = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     tmp = cv2.cvtColor(tmp, cv2.COLOR_GRAY2BGR)
@@ -124,6 +120,9 @@ def adjustHue(img, fac):
 
 
 def adjustGamma(img, gamma, gain=1):
+    """gamma should be [0.6, 3.0]: 
+        larger gamma --> darker img; 
+    """
     img2 = np.float32(img)
     img2 = 255.0 * gain * np.power(img2/255.0, gamma)
     img2 = np.uint8(img2.clip(min=0, max=255))  
@@ -305,7 +304,7 @@ def simpleRotate(img, angle, scale=0.90):
     Filled with random color.
 
     NOTE: if rotate degree less than 90, use rotateX instead.
-    
+
     TODO1: automatically calculate the scale needed;
     """
     if math.fabs(math.tan(angle*math.pi/180)) > 0.8:
@@ -424,7 +423,8 @@ def adjustPerspectiveX(img, anglex=0, angley=0, anglez=0, shear=0, fov=45,
                 translate=(0, 0), scale=(0.85, 0.85), resample=cv2.INTER_LINEAR, fillcolor=None):
     """
     Precisely perspective change.
-    No need simpleRotate after this operation.
+    Note: No need simpleRotate after this operation.
+
     This function is from YU-Zhiyang
         https://github.com/YU-Zhiyang/opencv_transforms_torchvision/tree/master/cvtorchvision
 
