@@ -74,10 +74,11 @@ def toTensor(img):
 
 def addNoise(img, sigma=2.0, mean=0):
     """Add Gaussian Noise to the image"""
-    img2 = np.random.normal(mean, sigma, size=img.shape)
+    img2 = np.random.normal(0, sigma, size=img.shape)
 
     img2 += img
     img2 = np.clip(np.uint8(img2), 0, 255)
+
     return img2
 
 

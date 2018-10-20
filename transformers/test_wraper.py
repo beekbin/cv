@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 
 import logging
 import transform as tr
+import chain
 
 log = logging.getLogger(__file__)
 log.setLevel(logging.DEBUG)
@@ -29,6 +30,24 @@ def setupLog():
     return
 
 
+def tranImgs(imgs):
+    noise = chain.NoiseWraper(0.5, maxSigma=5)
+    color = chain.ColorWraper(0.5)
+    aspect = chain.AspectWraper(0.5)
+    shadow = chain.ShadowWraper(1.0)
+    print(noise)
+    print(color)
+    for img in imgs:
+        img = tr.resize(img, (480, 360))
+        img2 = noise.run(img)
+        #img2 = color.run(img2)
+        img2 = shadow.run(img2)
+        img2 = aspect.run(img2)
+        tr.showImgs([img, img2])
+
+    return
+
+
 def testImgs():
     fnames = [
          "../data/driver/songbin.png",
@@ -47,48 +66,7 @@ def testImgs():
         img = tr.loadImage(fname)
         imgs.append(img)
 
-    tranImgs(imgs)   
-    return
-
-
-def tranImgs(imgs):
-    for img in imgs:
-        img = tr.resize(img, (480, 360))
-        img2 = tr.addNoise(img, sigma=5.0)
-        img2 = tr.adjustBrightness(img2, 0.58)
-        #img2 = tr.adjustContrast(img2, 1.33)
-        #img2 = tr.adjustSaturation(img, 1.62)
-        #img2 = tr.adjustHue(img, 0.2)
-        img2 = tr.adjustGamma(img2, 1.6)
-    
-        #img2 = tr.gradualShade(img, 0.9, 1, 0)
-        #img2 = tr.gradualShadeV(img, 0.9, 1)
-
-        #img2 = tr.simpleRotate(img, 30)
-        #img2 = tr.rotateX(img, 0.98)
-
-        #img2 = tr.crop(img, (1.0, 0.3), point=(0.0, 0.0))
-        #img2 = tr.adjustAspectRatio(img, 2.0)
-        #img2 = tr.adjustPerspectiveX(img, anglex=30, angley=-45, anglez=-30, shear=8)
-        #img2 = tr.adjustPerspective(ig)
-        tr.showImgs([img, img2])
-    return
-
-def test():
-    #fname = "../data/driver/songbin2.png"
-    fname = "../data/driver/california.png"
-    img = tr.loadImage(fname)
-    #tr.showImg(img, "Songbin")
-
-    #img2 = tr.addNoise(img)
-    #img2 = tr.adjustBrightness(img, 0.8)
-    #img2 = tr.adjustContrast(img, 2.0)
-    #img2 = tr.adjustSaturation(img, 4.0)
-    #img2 = tr.adjustHue(img, 0.2)
-    #img2 = tr.adjustGamma(img, 1.5)
-    #img2 = tr.simpleRotate(img, 8)
-    img2 = tr.gradualShade(img, 1.1)
-    tr.showImgs([img, img2])
+    tranImgs(imgs)
     return
 
 
@@ -101,4 +79,3 @@ def main():
 if __name__ == "__main__":
     setupLog()
     main()
-
