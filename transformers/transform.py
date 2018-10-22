@@ -329,6 +329,7 @@ def rotate2D(img, angle, scale=0.90):
 def rotate2DX(img, fac):
     """
     approximatively rotate the image [-90, 90] degrees.
+    This operation can make sure the image is inside the box.
     fac: [-0.99, 0.99]
     """
     if math.fabs(fac) > 0.99:
@@ -364,22 +365,28 @@ def _genRandomColor():
     return (b, g, r) 
 
 
-def adjustPerspective(img, fac=0.15):
+def adjustPerspectiveX(img, idx=-1, fac=0.15, scale=(1.0, 1.0)):
     """approximatively perspective change.
     fac should be [0.05, 0.2]
     https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_geometric_transformations/py_geometric_transformations.html
-    TODO: a single parameter indicate the one of the 8 perspectives.
+    TODO: 
+      1. use switch-case to compute only the needed pts2;
+      2. adjust the corner with scale taking into account;
     """
-    h, w, _ = img.shape
+    h1, w1, _ = img.shape
+
+    w, h = int(w1 * scale[0]), int(h1 * scale[1])
+    aw = (w1 - w) // 2
+    ah = (h1 - h) // 2
     
     dh = int(fac * w)
     dw = int(fac * h)
-    pts1 = np.float32([[0, 0], [w, 0], [0, h], [w, h]])
+    pts1 = np.float32([[0, 0], [w1, 0], [0, h1], [w1, h1]])
 
     views = []
-
     #1. from left to right
-    pts2 = np.float32([[0, 0], [w-dw, dh], [0, h], [w-dw, h-dh]])
+    #pts2 = np.float32([[0, 0], [w-dw, dh], [0, h], [w-dw, h-dh]])
+    pts2 = np.float32([[aw, ah], [w-dw, dh], [aw, h-ah], [w-dw, h-dh]])
     views.append(pts2)
 
     #2. from right to left
@@ -414,7 +421,12 @@ def adjustPerspective(img, fac=0.15):
     pts2 = np.float32([[dw/2, dh/2], [w, 0], [0, h], [w-dw/2, h-dh/2]]) 
     views.append(pts2)
 
-    pts2 = views[random.randint(0, len(views) - 1)]
+    if idx < 0:
+        idx = random.randint(0, len(views) - 1)
+    else:
+        idx = idx % len(views)
+
+    pts2 = views[idx]
     fcolor = _genRandomColor()
     M = cv2.getPerspectiveTransform(pts1, pts2)
     img2 = cv2.warpPerspective(img, M, (w, h), borderMode=cv2.BORDER_CONSTANT, borderValue=fcolor)
@@ -425,7 +437,7 @@ def adjustPerspective(img, fac=0.15):
     return img2
 
 
-def adjustPerspectiveX(img, anglex=0, angley=0, anglez=0, shear=0, fov=45,
+def adjustPerspective(img, anglex=0, angley=0, anglez=0, shear=0, fov=45,
                 translate=(0, 0), scale=(0.85, 0.85), resample=cv2.INTER_LINEAR, fillcolor=None):
     """
     Precisely perspective change.

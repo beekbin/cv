@@ -53,7 +53,7 @@ def testImgs():
 
 def tranImgs(imgs):
     for img in imgs:
-        img = tr.resize(img, (480, 360))
+        img = tr.resize(img, (480, 480))
         img2 = tr.addNoise(img, sigma=5.0)
         img2 = tr.adjustBrightness(img2, 0.58)
         #img2 = tr.adjustContrast(img2, 1.33)
@@ -67,10 +67,13 @@ def tranImgs(imgs):
         #img2 = tr.rotate2D(img2, 30)
         #img2 = tr.rotate2DX(img, 0.98)
 
-        #img2 = tr.crop(img, (1.0, 0.3), point=(0.0, 0.0))
+        img2 = tr.crop(img2, (1.0, 0.3), point=(0.0, 0.0))
         #img2 = tr.adjustAspectRatio(img, 2.0)
-        img2 = tr.adjustPerspectiveX(img, anglex=30, angley=-10, anglez=-30, shear=8)
-        #img2 = tr.adjustPerspective(img2)
+        scale=(1.0, 1.0)
+        #translate = (5, 7)
+        img2 = tr.adjustPerspective(img2, anglex=0, angley=0, anglez=15, shear=0, scale=scale)
+        #img3 = tr.adjustPerspective(img, anglex=30, angley=0, anglez=45, shear=0)
+        #img2 = tr.adjustPerspectiveX(img2)
         tr.showImgs([img, img2])
     return
 

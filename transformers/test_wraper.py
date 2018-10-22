@@ -39,17 +39,31 @@ def tranImgs(imgs):
     shadow = chain.ShadowWraper(1.0)
 
     shrink = chain.ShrinkWraper(chance=1.0)
+    rotate2D = chain.Rotate2DWraper(chance=1.0, angle=(-30, 30))
+    rotate2DX = chain.Rotate2DXWraper(chance=1.0, angle=(-0.5, 0.5))
+
+    rotate3D = chain.Rotate3DWraper(chance=1.0)
+    rotate3DX = chain.Rotate3DXWraper(chance=1.0)
+
+    eraser = chain.EraseWraper(chance=1.0)
+    croper = chain.CropWraper(chance=1.0)
+
     print(noise)
     print(color)
     for img in imgs:
         img2 = img.copy()
         img = tr.resize(img, (480, 360))
+
         img2 = face.run(img2)
         img2 = tr.resize(img2, (480, 360))
+        #img2 = eraser.run(img2)
+        img2 = croper.run(img2)
+        #img2 = rotate2DX.run(img2)
+        #img2 = rotate3DX.run(img2)
         #img2 = noise.run(img2)
 
         #img2 = color.run(img2)
-        #img2 = shadow.run(img2)
+        #img2  shadow.run(img2)
         #img2 = aspect.run(img2)
         #img2 = shrink.run(img2)
         tr.showImgs([img, img2])

@@ -247,3 +247,174 @@ class Rotate2DWraper:
 
         img2 = tr.rotate2D(img, angle, scale)
         return img2
+
+
+class Rotate2DXWraper:
+    """Rotate image in 2D  around center.
+    Approximatively rotate the image degrees.
+    Note: the degree range is [-90, 90].
+    """
+    def __init__(self, chance=0.5, angle=(-0.99, 0.99)):
+        self.chance = chance
+        
+        self.angle_low = angle[0]
+        self.angle_high = angle[1]
+        return
+
+    def __str__(self):
+        msg = "Rotate2DWraper: %.2f" % (self.chance)
+        return msg
+
+    def run(self, img):
+        if random.random() > self.chance:
+            return img
+        
+        fac = random.uniform(self.angle_low, self.angle_high)
+        img2 = tr.rotate2DX(img, fac)
+        return img2
+
+
+class Rotate3DWraper:
+    """Rotate image in 3D around center.
+    Note: 
+      (1) don't use it with Rotate2D(X); already rotate by Z;
+      (2) don't use it with ShrinkWraper: already rescaled;
+      (3) don't use it with AspectWraper: already implemented by different scales.
+    """        
+    def __init__(self, chance=0.5, x=(-40, 40), y=(-40, 40), z=(-40, 40)):
+        self.chance = chance
+        self.angle_x = x
+        self.angle_y = y
+        self.angle_z = z
+        self.shear = (-180, 180)
+        self.scale_range = (0.7, 1.0)
+        return
+
+    def __str__(self):
+        msg = "Rotate3DXWraper: %.2f" % (self.chance)
+        return msg
+
+    def _adjustScale(self, z, scale_w, scale_h):
+        """if angle_z is larger than 15 degrees, img should be shrinked a lot to avoid cut out"""
+        if math.tan(45*math.pi/180) > 0.3:
+            # 0.3 == math.tan(15 degree)
+            if scale_w <= 0.85 and scale_h <= 0.85:
+                return scale_w, scale_h
+
+        r = scale_w / scale_h
+        if scale_w > scale_h:
+            scale_w = 0.85
+            scale_h = scale_w / r
+        else:
+            scale_h = 0.85
+            scale_w = scale_h * r
+        return scale_w, scale_h
+
+    def run(self, img):
+        if random.random() > self.chance:
+            return img
+        
+
+        x = random.uniform(self.angle_x[0], self.angle_x[1])
+        y = random.uniform(self.angle_y[0], self.angle_y[1])
+        z = random.uniform(self.angle_z[0], self.angle_z[1])
+        shear = random.uniform(self.shear[0], self.shear[1])
+
+        scale_w = random.uniform(self.scale_range[0], self.scale_range[1])
+        if random.random() < 0.7:
+            scale_h = scale_w
+        else:
+            scale_h = random.uniform(self.scale_range[0], self.scale_range[1])
+
+        scale = self._adjustScale(z, scale_w, scale_h)
+        img2 = tr.adjustPerspective(img, anglex=x, angley=y, anglez=z, shear=shear, scale=scale)
+        return img2
+
+
+class Rotate3DXWraper:
+    """approximatively perspective change.
+    """
+    def __init__(self, chance=0.5, fac=[0.05, 0.2]):
+        self.chance = chance 
+        self.fac = fac
+        self.scale_range = (0.7, 1.0)
+        return
+
+    def __str__(self):
+        msg = "Rotate3DXWraper: %.2f" % (self.chance)
+        return msg
+
+    def run(self, img):
+        if random.random() > self.chance:
+            return img
+
+        fac = random.uniform(self.fac[0], self.fac[1])
+        fac = 0.2
+
+        scale_w = random.uniform(self.scale_range[0], self.scale_range[1])
+        scale_h = random.uniform(self.scale_range[0], self.scale_range[1])
+        scale = (scale_w, scale_h)
+        img2 = tr.adjustPerspectiveX(img, fac=fac, scale=scale)
+        return img2 
+
+
+class EraseWraper:
+    """Randomly Erase the lower bottom of each image.
+    Note: don't use it with CropWraper.
+    """
+    def __init__(self, chance=0.5):
+        self.chance = chance
+        self.h_low = 0.35
+        self.h_high = 0.50
+
+        self.w_low = 0.05
+        self.w_high = 0.50 
+        return    
+
+    def __str__(self):
+        msg = "CropWraper: %.2f " % (self.chance)
+        return msg
+
+    def run(self, img):
+        if random.random() > self.chance:
+            return
+        
+        h, w, _ = img.shape
+
+        x1 = random.randint(int(self.w_low*w), int(self.w_high*w))
+        y1 = random.randint(int(self.h_low*h), int(self.h_high*h))
+
+        ## note: make sure left is smaller than right.
+        x2 = random.randint(x1+20, int(0.90*w))
+        y2 = random.randint(y1+20, int(0.90*h))
+
+        img[y1:y2, x1:x2] = np.uint8(np.random.normal(0, 5, (y2-y1, x2-x1, 3)))
+        return img
+
+
+class CropWraper:
+    """Randomly crop the upper header of each image.
+    Note: don't use it with EraseWraper.
+    """
+    def __init__(self, chance=0.5):
+        self.chance = chance
+        return    
+
+    def __str__(self):
+        msg = "CropWraper: %.2f " % (self.chance)
+        return msg
+
+    def run(self, img):
+        if random.random() > self.chance:
+            return
+        
+        h, w, _ = img.shape
+
+        x1 = random.randint(int(0.1*w), int(0.3*w))
+        y1 = random.randint(int(0.3*h), int(0.4*h))
+
+        x2 = random.randint(int(0.7*w), int(0.90*w))
+        y2 = random.randint(int(0.5*h), int(0.90*h))
+
+        img[y1:y2, x1:x2] = np.random.normal(0, 5, (y2-y1, x2-x1, 3))
+        return img
