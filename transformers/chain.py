@@ -15,7 +15,7 @@ log.setLevel(logging.DEBUG)
 
 
 class NoiseWraper:
-    def __init__(self, chance, maxSigma=3):
+    def __init__(self, chance=0.5, maxSigma=3):
         self.chance = chance
         self.maxSigma = maxSigma
         return
@@ -35,7 +35,7 @@ class NoiseWraper:
     
 
 class ColorWraper:
-    def __init__(self, chance):
+    def __init__(self, chance=0.5):
         self.bright_chance = chance
         self.contrast_chance = chance
         self.saturation_chance = chance
@@ -71,10 +71,10 @@ class ColorWraper:
 
 
 class AspectWraper:
-    def __init__(self, chance):
+    def __init__(self, chance=0.5):
         self.chance = chance
-        self.fac_low = 0.7
-        self.fac_high = 2.0
+        self.fac_low = 0.8
+        self.fac_high = 1.5
         return
 
     def __str__(self):
@@ -123,4 +123,73 @@ class ShadowWraper:
         else:
             img2 = tr.gradualShadeV(img, fac, 1)
 
+        return img2
+
+
+class ShrinkWraper:
+    """Rescale the ID with regard to the whole image.
+       Will keep the input aspect ratio.
+    """
+    def __init__(self, chance=0.5, bg_imgs=[]):
+        self.chance = chance
+        self.fac_low = 0.65
+        self.fac_high = 1.0
+
+        self.bg_imgs = bg_imgs
+        return
+
+    def __str__(self):
+        msg = "ShrinkWraper: %.3f" % (self.chance)    
+        return msg
+
+    def resizeBbImgs(self, w, h):
+        sz = (w, h)
+        for i in range(len(self.bg_imgs)):
+            img = self.bg_imgs[i]
+            self.bg_imgs[i] = tr.resize(img, sz)
+        return
+
+    def _randomImg(self, size):
+        """get a backgroud image randomly"""
+        n = len(self.bg_imgs)
+        index = random.randint(0, n + 2)
+        if index < n:
+            bg_img = self.bg_imgs[index].copy()
+        elif index == n:
+            # get a constatn color bg image
+            bg_img = np.full(size, 0, np.uint8)
+            fcolor = tr._genRandomColor()
+            _, _, c = size
+            for i in range(c):
+                bg_img[:, :, i] = fcolor[i]
+        else:
+            # get a totally random bg image
+            sigma = 4.0
+            bg_img = np.random.normal(0.0, sigma, size)
+            bg_img = np.uint8(bg_img)
+        return bg_img
+
+    def run(self, img):
+        if random.random() > self.chance:
+            return img
+
+        #1. shrink it
+        fac = random.uniform(self.fac_low, self.fac_high)
+        if math.fabs(fac - 1.0) < 0.02:
+            return img
+
+        h, w, _ = img.shape
+        h, w = int(fac*h), int(fac * w)
+        img2 = tr.resize(img, (w, h))
+        
+        #2. past it to background image
+        bg_img = self._randomImg(img.shape)
+
+        #3. paste it to the background image
+        dh = img.shape[0] - h
+        dw = img.shape[1] - w
+        x_offset = random.randint(0, dw)
+        y_offset = random.randint(0, dh)
+
+        img2 = tr.paste(bg_img, img2, x_offset, y_offset)
         return img2

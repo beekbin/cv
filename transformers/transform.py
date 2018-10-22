@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 log = logging.getLogger(__file__)
+log.setLevel(logging.DEBUG)
 
 
 ## References
@@ -131,11 +132,15 @@ def adjustGamma(img, gamma, gain=1):
 
 
 def resize(img, size):
+    h, w, _ = img.shape
+    if (w, h) == size:
+        return img
     return cv2.resize(img, dsize=size)
 
 
 def paste(bg_img, img, x_offset, y_offset):
     """need to check boundries."""
+    log.info("bg_img.shape: %s, img.shape: %s" % (bg_img.shape, img.shape))
     y1, y2 = y_offset, y_offset + img.shape[0]
     x1, x2 = x_offset, x_offset + img.shape[1]
 

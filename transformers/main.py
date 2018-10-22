@@ -70,7 +70,7 @@ def tranImgs(imgs):
         #img2 = tr.crop(img, (1.0, 0.3), point=(0.0, 0.0))
         #img2 = tr.adjustAspectRatio(img, 2.0)
         #img2 = tr.adjustPerspectiveX(img, anglex=30, angley=-45, anglez=-30, shear=8)
-        #img2 = tr.adjustPerspective(ig)
+        img2 = tr.adjustPerspective(img)
         tr.showImgs([img, img2])
     return
 

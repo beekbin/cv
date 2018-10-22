@@ -35,14 +35,17 @@ def tranImgs(imgs):
     color = chain.ColorWraper(0.5)
     aspect = chain.AspectWraper(0.5)
     shadow = chain.ShadowWraper(1.0)
+
+    scaler = chain.ShrinkWraper(chance=1.0)
     print(noise)
     print(color)
     for img in imgs:
         img = tr.resize(img, (480, 360))
         img2 = noise.run(img)
         #img2 = color.run(img2)
-        img2 = shadow.run(img2)
+        #img2 = shadow.run(img2)
         img2 = aspect.run(img2)
+        img2 = scaler.run(img2)
         tr.showImgs([img, img2])
 
     return
