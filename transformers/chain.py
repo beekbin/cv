@@ -398,6 +398,8 @@ class CropWraper:
     """
     def __init__(self, chance=0.5):
         self.chance = chance
+        self.mean = (0, 128)
+        self.sigma = (2, 8)
         return    
 
     def __str__(self):
@@ -411,10 +413,12 @@ class CropWraper:
         h, w, _ = img.shape
 
         x1 = random.randint(int(0.1*w), int(0.3*w))
-        y1 = random.randint(int(0.3*h), int(0.4*h))
+        y1 = random.randint(int(0.3*h), int(0.5*h))
 
         x2 = random.randint(int(0.7*w), int(0.90*w))
-        y2 = random.randint(int(0.5*h), int(0.90*h))
+        y2 = random.randint(int(0.55*h), int(0.90*h))
 
-        img[y1:y2, x1:x2] = np.random.normal(0, 5, (y2-y1, x2-x1, 3))
+        mean = random.uniform(self.mean[0], self.mean[1])
+        sigma = random.uniform(self.sigma[0], self.sigma[1])
+        img[y1:y2, x1:x2] = np.random.normal(mean, sigma, (y2-y1, x2-x1, 3))
         return img
