@@ -9,6 +9,7 @@ import random
 import math
 import numpy as np
 import transform as tr
+import cv2
 
 log = logging.getLogger(__file__)
 log.setLevel(logging.DEBUG)
@@ -192,4 +193,57 @@ class ShrinkWraper:
         y_offset = random.randint(0, dh)
 
         img2 = tr.paste(bg_img, img2, x_offset, y_offset)
+        return img2
+
+
+class FaceWraper:
+    """detect and erase faces.
+    Using OpenCV Haar Feature-based Cascade Classifiers.
+    https://docs.opencv.org/3.4/d7/d8b/tutorial_py_face_detection.html
+
+    NOTE: face detecter may fail if the image is skewed. So should apply
+    FaceWraper before resize/aspectRatio/rotate/noise.
+    """
+    def __init__(self, fmodel, chance=0.5):
+        self.chance = chance
+        self.fmodel = fmodel
+        self.model = cv2.CascadeClassifier(fmodel)
+        return
+
+    def __str__(self):
+        msg = "FaceWraper: %.2f;\nmodel: %s" % (self.chance, self.fmodel)
+        return msg
+
+    def run(self, img):
+        mean = random.uniform(0, 64)
+        sigma = random.uniform(5, 15)
+        img2 = tr.eraseFace(self.model, img, mean, sigma)
+        return img2
+
+
+class Rotate2DWraper:
+    """Rotate image in 2D  around center.
+    Note: cannot
+    """
+    def __init__(self, chance=0.5, scale=(0.80, 1.0), angle=(-180, 180)):
+        self.chance = chance
+        self.scale_low = scale[0]
+        self.scale_high = scale[1]
+
+        self.angle_low = angle[0]
+        self.angle_high = angle[1]
+        return
+
+    def __str__(self):
+        msg = "Rotate2DWraper: %.2f" % (self.chance)
+        return msg
+
+    def run(self, img):
+        if random.random() > self.chance:
+            return img
+        
+        scale = random.uniform(self.scale_low, self.scale_high)
+        angle = random.uniform(self.angle_low, self.angle_high)
+
+        img2 = tr.rotate2D(img, angle, scale)
         return img2

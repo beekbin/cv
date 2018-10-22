@@ -303,7 +303,7 @@ def crop(img, size, point=(0, 0)):
     return img2
 
 
-def simpleRotate(img, angle, scale=0.90):
+def rotate2D(img, angle, scale=0.90):
     """
     angle: [-180, 180];
     scale: [0, 1.0];
@@ -326,9 +326,9 @@ def simpleRotate(img, angle, scale=0.90):
     return img2
 
 
-def rotateX(img, fac):
+def rotate2DX(img, fac):
     """
-    Rotate the image [-90, 90] degrees.
+    approximatively rotate the image [-90, 90] degrees.
     fac: [-0.99, 0.99]
     """
     if math.fabs(fac) > 0.99:
@@ -508,7 +508,43 @@ def adjustPerspectiveX(img, anglex=0, angley=0, anglez=0, shear=0, fov=45,
     perspective_matrix = cv2.getPerspectiveTransform(org, dst)
     total_matrix = perspective_matrix @ affine_matrix
 
-    fcolor = _genRandomColor()
+    if fillcolor is None:
+        fillcolor = _genRandomColor()
     result_img = cv2.warpPerspective(img, total_matrix, (w, h), flags=resample,
-                                     borderMode=cv2.BORDER_CONSTANT, borderValue=fcolor)
+                                     borderMode=cv2.BORDER_CONSTANT, borderValue=fillcolor)
     return result_img.astype(imgtype)
+
+
+def _randomFill(img, area, mean, sigma):
+    x, y, w, h = area
+    rnd = np.random.normal(mean, sigma, (h, w, 3))
+    img[y:y+h, x:x+w, :] = np.uint8(rnd) 
+    return
+
+
+def eraseFace(model, img, mean=127, sigma=8):
+    """Use CascadeClassifier to detect faces, 
+       and erase the area with random filling.
+
+       model: is a cv2.CascadeClassifier;
+    """
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    faces = model.detectMultiScale(gray, 1.3, 5)
+
+    img2 = img
+    num = min(2, len(faces)) # detect at most 2 faces
+    for i in range(num):
+        x, y, w, h = faces[i]
+        cv2.rectangle(img, (x,y), (x+w, y+h), (0,0,255), 3) 
+
+        dw = int(w*0.1)
+        dh = int(h*0.15)
+        w = w + 2 * dw
+        h = h + 2 * dh
+        x -= dw
+        y -= dh
+
+        area = (x, y, w, h)
+        _randomFill(img2, area, mean, sigma)
+    
+    return img2

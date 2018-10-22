@@ -32,20 +32,26 @@ def setupLog():
 
 def tranImgs(imgs):
     noise = chain.NoiseWraper(0.5, maxSigma=5)
+    fmodel = "./model/haarcascade_frontalface_default.xml"
+    face = chain.FaceWraper(fmodel, 1.0)
     color = chain.ColorWraper(0.5)
-    aspect = chain.AspectWraper(0.5)
+    aspect = chain.AspectWraper(1.0)
     shadow = chain.ShadowWraper(1.0)
 
-    scaler = chain.ShrinkWraper(chance=1.0)
+    shrink = chain.ShrinkWraper(chance=1.0)
     print(noise)
     print(color)
     for img in imgs:
+        img2 = img.copy()
         img = tr.resize(img, (480, 360))
-        img2 = noise.run(img)
+        img2 = face.run(img2)
+        img2 = tr.resize(img2, (480, 360))
+        #img2 = noise.run(img2)
+
         #img2 = color.run(img2)
         #img2 = shadow.run(img2)
-        img2 = aspect.run(img2)
-        img2 = scaler.run(img2)
+        #img2 = aspect.run(img2)
+        #img2 = shrink.run(img2)
         tr.showImgs([img, img2])
 
     return

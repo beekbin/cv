@@ -59,18 +59,18 @@ def tranImgs(imgs):
         #img2 = tr.adjustContrast(img2, 1.33)
         #img2 = tr.adjustSaturation(img, 1.62)
         #img2 = tr.adjustHue(img, 0.2)
-        img2 = tr.adjustGamma(img2, 1.6)
+        #img2 = tr.adjustGamma(img2, 1.4)
     
         #img2 = tr.gradualShade(img, 0.9, 1, 0)
         #img2 = tr.gradualShadeV(img, 0.9, 1)
 
-        #img2 = tr.simpleRotate(img, 30)
-        #img2 = tr.rotateX(img, 0.98)
+        #img2 = tr.rotate2D(img2, 30)
+        #img2 = tr.rotate2DX(img, 0.98)
 
         #img2 = tr.crop(img, (1.0, 0.3), point=(0.0, 0.0))
         #img2 = tr.adjustAspectRatio(img, 2.0)
-        #img2 = tr.adjustPerspectiveX(img, anglex=30, angley=-45, anglez=-30, shear=8)
-        img2 = tr.adjustPerspective(img)
+        img2 = tr.adjustPerspectiveX(img, anglex=30, angley=-10, anglez=-30, shear=8)
+        #img2 = tr.adjustPerspective(img2)
         tr.showImgs([img, img2])
     return
 
@@ -86,7 +86,7 @@ def test():
     #img2 = tr.adjustSaturation(img, 4.0)
     #img2 = tr.adjustHue(img, 0.2)
     #img2 = tr.adjustGamma(img, 1.5)
-    #img2 = tr.simpleRotate(img, 8)
+    #img2 = tr.rotate2D(img, 8)
     img2 = tr.gradualShade(img, 1.1)
     tr.showImgs([img, img2])
     return
