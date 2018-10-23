@@ -55,7 +55,7 @@ def tranImgs(imgs):
     for img in imgs:
         img = tr.resize(img, (480, 480))
         img2 = tr.addNoise(img, sigma=5.0)
-        img2 = tr.adjustBrightness(img2, 0.58)
+        #img2 = tr.adjustBrightness(img2, 0.58)
         #img2 = tr.adjustContrast(img2, 1.33)
         #img2 = tr.adjustSaturation(img, 1.62)
         #img2 = tr.adjustHue(img, 0.2)
@@ -67,7 +67,7 @@ def tranImgs(imgs):
         #img2 = tr.rotate2D(img2, 30)
         #img2 = tr.rotate2DX(img, 0.98)
 
-        img2 = tr.crop(img2, (1.0, 0.3), point=(0.0, 0.0))
+        #img2 = tr.crop(img2, (1.0, 0.3), point=(0.0, 0.0))
         #img2 = tr.adjustAspectRatio(img, 2.0)
         scale=(1.0, 1.0)
         #translate = (5, 7)

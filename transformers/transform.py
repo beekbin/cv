@@ -515,7 +515,8 @@ def adjustPerspective(img, anglex=0, angley=0, anglez=0, shear=0, fov=45,
         dst[i, 1] = list_dst[i][1] * z / (z - list_dst[i][2]) + pcenter[1]
 
     perspective_matrix = cv2.getPerspectiveTransform(org, dst)
-    total_matrix = perspective_matrix @ affine_matrix
+    #total_matrix = perspective_matrix @ affine_matrix
+    total_matrix = np.matmul(perspective_matrix, affine_matrix)
 
     if fillcolor is None:
         fillcolor = _genRandomColor()
