@@ -107,7 +107,7 @@ def getChain1():
     eraser = chain.EraseWraper(chance=1.0)
     worker.addOperator(eraser)
 
-    rotate3d = chain.Rotate3DXWraper(chance=1.0)
+    rotate3d = chain.Rotate3DWraper(chance=1.0)
     worker.addOperator(rotate3d)
     return worker
 
@@ -197,8 +197,8 @@ def testImgs():
         imgs.append(img)
 
     log.debug("%d imgs." % (len(imgs)))
-    #testEffect(imgs)
-    testPerformance(imgs)
+    testEffect(imgs)
+    #testPerformance(imgs)
     return
 
 

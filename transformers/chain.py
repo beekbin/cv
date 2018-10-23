@@ -66,21 +66,23 @@ class ColorWraper:
     def run(self, img):
         img2 = img
         if random.uniform(0, 1.0) < self.bright_chance:
-            fac = random.uniform(0.5, 1.1)
+            fac = random.uniform(0.6, 1.1)
             img2 = tr.adjustBrightness(img2, fac)
             log.debug("adjust brightness: %.2f" % (fac))
 
         if random.uniform(0, 1.0) < self.contrast_chance:
-            fac = random.uniform(0.5, 2.0)
+            fac = random.uniform(0.6, 2.0)
             img2 = tr.adjustContrast(img2, fac)
             log.debug("adjust contrast: %.2f" % (fac))
 
+        enable_gamma = True
         if random.uniform(0, 1.0) < self.saturation_chance:
-            fac = random.uniform(0.4, 2.0)
+            enable_gamma = False
+            fac = random.uniform(0.5, 2.0)
             img2 = tr.adjustSaturation(img2, fac)
             log.debug("adjust saturation: %.2f" % (fac))
 
-        if random.uniform(0, 1.0) < self.gamma_chance:
+        if enable_gamma and random.uniform(0, 1.0) < self.gamma_chance:
             gamma = random.uniform(0.6, 2.2)
             img2 = tr.adjustGamma(img2, gamma)
             log.debug("adjust gamma: %.2f" % (gamma))
