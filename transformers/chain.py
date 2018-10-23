@@ -15,6 +15,22 @@ log = logging.getLogger(__file__)
 log.setLevel(logging.DEBUG)
 
 
+class ResizeWraper:
+    """resize the image to desired size"""
+    def __init__(self, w, h, chance=1.0):
+        self.chance = chance
+        self.w = w
+        self.h = h
+    
+    def __str__(self):
+        msg = "ResizeWraper: %.2f" % (self.chance)
+        return msg
+
+    def run(self, img):
+        img2 = tr.resize(img, (self.w, self.h))
+        return img2
+
+
 class NoiseWraper:
     def __init__(self, chance=0.5, maxSigma=3):
         self.chance = chance
@@ -131,9 +147,9 @@ class ShrinkWraper:
     """Rescale the ID with regard to the whole image.
        Will keep the input aspect ratio.
     """
-    def __init__(self, chance=0.5, bg_imgs=[]):
+    def __init__(self, chance=0.5, fac_low=0.65, bg_imgs=[]):
         self.chance = chance
-        self.fac_low = 0.65
+        self.fac_low = fac_low
         self.fac_high = 1.0
 
         self.bg_imgs = bg_imgs
@@ -201,8 +217,11 @@ class FaceWraper:
     Using OpenCV Haar Feature-based Cascade Classifiers.
     https://docs.opencv.org/3.4/d7/d8b/tutorial_py_face_detection.html
 
-    NOTE: face detecter may fail if the image is skewed. So should apply
+    NOTE 1: face detecter may fail if the image is skewed. So should apply
     FaceWraper before resize/aspectRatio/rotate/noise.
+
+    NOTE 2: face detecter is heavy, so try to avoid use it on the fly;
+
     """
     def __init__(self, fmodel, chance=0.5):
         self.chance = chance
@@ -357,53 +376,18 @@ class Rotate3DXWraper:
         img2 = tr.adjustPerspectiveX(img, fac=fac, scale=scale)
         return img2 
 
-
 class EraseWraper:
-    """Randomly Erase the lower bottom of each image.
-    Note: don't use it with CropWraper.
-    """
-    def __init__(self, chance=0.5):
-        self.chance = chance
-        self.h_low = 0.35
-        self.h_high = 0.50
-
-        self.w_low = 0.05
-        self.w_high = 0.50 
-        return    
-
-    def __str__(self):
-        msg = "CropWraper: %.2f " % (self.chance)
-        return msg
-
-    def run(self, img):
-        if random.random() > self.chance:
-            return
-        
-        h, w, _ = img.shape
-
-        x1 = random.randint(int(self.w_low*w), int(self.w_high*w))
-        y1 = random.randint(int(self.h_low*h), int(self.h_high*h))
-
-        ## note: make sure left is smaller than right.
-        x2 = random.randint(x1+20, int(0.90*w))
-        y2 = random.randint(y1+20, int(0.90*h))
-
-        img[y1:y2, x1:x2] = np.uint8(np.random.normal(0, 5, (y2-y1, x2-x1, 3)))
-        return img
-
-
-class CropWraper:
     """Randomly crop the upper header of each image.
     Note: don't use it with EraseWraper.
     """
     def __init__(self, chance=0.5):
         self.chance = chance
-        self.mean = (0, 128)
+        self.mean = (0, 10)
         self.sigma = (2, 8)
         return    
 
     def __str__(self):
-        msg = "CropWraper: %.2f " % (self.chance)
+        msg = "EraseWraper: %.2f " % (self.chance)
         return msg
 
     def run(self, img):
@@ -413,12 +397,42 @@ class CropWraper:
         h, w, _ = img.shape
 
         x1 = random.randint(int(0.1*w), int(0.3*w))
-        y1 = random.randint(int(0.3*h), int(0.5*h))
+        y1 = random.randint(int(0.33*h), int(0.5*h))
 
         x2 = random.randint(int(0.7*w), int(0.90*w))
         y2 = random.randint(int(0.55*h), int(0.90*h))
 
         mean = random.uniform(self.mean[0], self.mean[1])
         sigma = random.uniform(self.sigma[0], self.sigma[1])
-        img[y1:y2, x1:x2] = np.random.normal(mean, sigma, (y2-y1, x2-x1, 3))
+        img[y1:y2, x1:x2] = np.uint8(np.random.normal(mean, sigma, (y2-y1, x2-x1, 3)))
         return img
+
+
+class Chain:
+    """A serial of Transformers"""
+    def __init__(self, name):
+        self.name = name
+        self.operators = []
+        return
+
+    def __str__(self):
+        msg = "%s has %d operators:" % (self.name, len(self.operators))
+        for op in self.operators:
+            msg = "%s\n\t%s" % (msg, op)
+
+        return msg
+
+    def addOperator(self, op):
+        self.operators.append(op)
+        return
+
+    def run(self, img):
+        if len(self.operators) < 1:
+            return img
+
+        img2 = img.copy()
+        for op in self.operators:
+            img2 = op.run(img2)
+        return img2
+
+

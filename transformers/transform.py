@@ -140,7 +140,6 @@ def resize(img, size):
 
 def paste(bg_img, img, x_offset, y_offset):
     """need to check boundries."""
-    log.info("bg_img.shape: %s, img.shape: %s" % (bg_img.shape, img.shape))
     y1, y2 = y_offset, y_offset + img.shape[0]
     x1, x2 = x_offset, x_offset + img.shape[1]
 
@@ -175,7 +174,6 @@ def doAdjustAspectRatio(img, ratio):
     scale = 1.0/max(w_new/w, h_new/h)
     inner = cv2.resize(img, dsize=(w_new, h_new))
     inner = cv2.resize(inner, None, fx=scale, fy=scale)
-    log.debug("%.3f inner.shape=%s" % (scale, inner.shape))
     return inner
 
 
