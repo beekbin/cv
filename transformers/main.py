@@ -52,7 +52,8 @@ def testImgs():
 
 
 def tranImgs(imgs):
-    for img in imgs:
+    for i in range(len(imgs)):
+        img = imgs[i]
         img = tr.resize(img, (480, 480))
         img2 = tr.addNoise(img, sigma=5.0)
         #img2 = tr.adjustBrightness(img2, 0.58)
@@ -75,6 +76,7 @@ def tranImgs(imgs):
         #img3 = tr.adjustPerspective(img, anglex=30, angley=0, anglez=45, shear=0)
         #img2 = tr.adjustPerspectiveX(img2)
         tr.showImgs([img, img2])
+        #tr.saveImgs([img, img2], "./result/%d.jpg" % (i))
     return
 
 def test():

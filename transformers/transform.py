@@ -60,6 +60,18 @@ def showImgs(imgs, title="title"):
     return
 
 
+def saveImgs(imgs, fname, title="title"):
+    windows = len(imgs)
+    for i, img in enumerate(imgs):
+        ax = plt.subplot(1, windows, i+1)
+        ax.axis("off")
+        plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+        ax.set_title("%s-%s"%(title, i))
+    #plt.show()
+    plt.savefig(fname)
+    return
+
+
 def showTensorImg(ts, title):
     """show a CWH tensor in plt (WHW)"""
     img = np.transpose(ts, (1, 2, 0))

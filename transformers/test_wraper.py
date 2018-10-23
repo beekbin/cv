@@ -131,10 +131,12 @@ def testPerformance(imgs):
 def testEffect(imgs):
     worker = getChain1()
     log.info("%s" % (worker))
-    for img in imgs:
+    for i in range(len(imgs)):
+        img = imgs[i]
         img2 = worker.run(img)
         img = tr.resize(img, (480, 480))
-        tr.showImgs([img, img2])
+        #tr.showImgs([img, img2])
+        tr.saveImgs([img, img2], "./result/%d.jpg"%(i))
     return
 
 
@@ -157,7 +159,9 @@ def tranImgs(imgs):
 
     print(noise)
     print(color)
-    for img in imgs:
+    for i in range(len(imgs)):
+        img = imgs[i]
+
         img2 = img.copy()
         img = tr.resize(img, (480, 360))
 
@@ -174,7 +178,7 @@ def tranImgs(imgs):
         #img2 = aspect.run(img2)
         #img2 = shrink.run(img2)
         tr.showImgs([img, img2])
-
+        #tr.saveImgs([img, img2], "./result/%d.jpg"%(i))
     return
 
 
