@@ -52,11 +52,11 @@ class NoiseWraper:
     
 
 class ColorWraper:
-    def __init__(self, chance=0.5):
+    def __init__(self, chance=0.5, gamma_chance=0.2):
         self.bright_chance = chance
         self.contrast_chance = chance
         self.saturation_chance = chance
-        self.gamma_chance = chance/2.0
+        self.gamma_chance = gamma_chance
         return
 
     def __str__(self):
@@ -75,14 +75,12 @@ class ColorWraper:
             img2 = tr.adjustContrast(img2, fac)
             log.debug("adjust contrast: %.2f" % (fac))
 
-        enable_gamma = True
         if random.uniform(0, 1.0) < self.saturation_chance:
-            enable_gamma = False
             fac = random.uniform(0.5, 2.0)
             img2 = tr.adjustSaturation(img2, fac)
             log.debug("adjust saturation: %.2f" % (fac))
 
-        if enable_gamma and random.uniform(0, 1.0) < self.gamma_chance:
+        if random.uniform(0, 1.0) < self.gamma_chance:
             gamma = random.uniform(0.6, 2.2)
             img2 = tr.adjustGamma(img2, gamma)
             log.debug("adjust gamma: %.2f" % (gamma))
@@ -218,6 +216,8 @@ class FaceWraper:
     """detect and erase faces.
     Using OpenCV Haar Feature-based Cascade Classifiers.
     https://docs.opencv.org/3.4/d7/d8b/tutorial_py_face_detection.html
+    model file:
+    https://github.com/opencv/opencv/tree/master/data/haarcascades
 
     NOTE 1: face detecter may fail if the image is skewed. So should apply
     FaceWraper before resize/aspectRatio/rotate/noise.
@@ -408,7 +408,7 @@ class EraseWraper:
         sigma = random.uniform(self.sigma[0], self.sigma[1])
         img[y1:y2, x1:x2] = np.uint8(np.random.normal(mean, sigma, (y2-y1, x2-x1, 3)))
         return img
-
+    
 
 class Chain:
     """A serial of Transformers"""

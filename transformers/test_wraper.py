@@ -91,9 +91,9 @@ def getChain2():
 def getChain1():
     worker = chain.Chain("chain1")
 
-    #fmodel = "./model/haarcascade_frontalface_default.xml"
-    #facer = chain.FaceWraper(fmodel, chance=1.0)
-    #worker.addOperator(facer)
+    fmodel = "./model/haarcascade_frontalface_default.xml"
+    facer = chain.FaceWraper(fmodel, chance=1.0)
+    worker.addOperator(facer)
 
     resizer = chain.ResizeWraper(w=480, h=480, chance=1.0)
     worker.addOperator(resizer)

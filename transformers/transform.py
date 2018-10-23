@@ -25,7 +25,7 @@ log.setLevel(logging.DEBUG)
 
 ## New
 ## 1. Remove torch dependence, so it can be used for Caffe2, pytorch, or other DL frameworks;
-## 2. Add perspective adjustment; 
+## 2. Add Face detection; 
 
 
 ## NOTE: 
@@ -274,8 +274,7 @@ def gradualShade(img, fac, direction1=0, direction2=1):
 
 def regionShadow(img, fac, region):
     """
-    region:
-
+    region: add glare/shadow in a region.
     """
     return
 
@@ -528,7 +527,7 @@ def adjustPerspective(img, anglex=0, angley=0, anglez=0, shear=0, fov=45,
 def _randomFill(img, area, mean, sigma):
     x, y, w, h = area
     rnd = np.random.normal(mean, sigma, (h, w, 3))
-    img[y:y+h, x:x+w, :] = np.uint8(rnd) 
+    img[y:y+h, x:x+w] = np.uint8(rnd) 
     return
 
 
@@ -537,6 +536,8 @@ def eraseFace(model, img, mean=127, sigma=8):
        and erase the area with random filling.
 
        model: is a cv2.CascadeClassifier;
+       model file can be found:
+          https://github.com/opencv/opencv/tree/master/data/haarcascades
     """
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     faces = model.detectMultiScale(gray, 1.3, 5)
@@ -547,6 +548,7 @@ def eraseFace(model, img, mean=127, sigma=8):
         x, y, w, h = faces[i]
         cv2.rectangle(img, (x,y), (x+w, y+h), (0,0,255), 3) 
 
+        # expand it to cover hair and neck.
         dw = int(w*0.1)
         dh = int(h*0.15)
         w = w + 2 * dw
