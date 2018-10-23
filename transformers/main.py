@@ -5,43 +5,15 @@ from __future__ import unicode_literals
 
 
 import logging
+import utils
 import transform as tr
 
 log = logging.getLogger(__file__)
 log.setLevel(logging.DEBUG)
 
 
-def setupLog():
-    """
-    Reset logging: to make the logging.basicConfig() work again.
-
-    Step 1: remove all the root.handlers
-       logging.basicConfig() does nothing if the root logger already has handlers
-            configured for it.
-    Step 2: setup logging format
-        logging.basicConfig() will create and add a default handler to the root logger.
-    """
-    if logging.root:
-        logging.root.handlers = []
-    fmt = "%(levelname).3s[%(asctime)s %(filename)s:%(lineno)d] %(message)s"
-    dtfmt = "%Y-%m-%d %H:%M:%S"
-    logging.basicConfig(format=fmt, datefmt=dtfmt)
-    return
-
-
 def testImgs():
-    fnames = [
-         "../data/driver/songbin.png",
-         "../data/driver/songbin2.png",
-         "../data/driver/motorist.jpg",
-         "../data/driver/minnesota.png",
-         "../data/driver/california.png",
-         "../data/driver/ny2.png",
-         "../data/driver/missi.png",
-         "../data/driver/vermont.png",
-         "../data/driver/florida.jpg",
-         "../data/driver/ma.jpg",
-    ]
+    fnames = utils.getFileNames("../data/driver/")
     imgs = []
     for fname in fnames:
         img = tr.loadImage(fname)
@@ -104,6 +76,6 @@ def main():
 
 
 if __name__ == "__main__":
-    setupLog()
+    utils.setupLog()
     main()
 
