@@ -147,12 +147,14 @@ class ShrinkWraper:
     """Rescale the ID with regard to the whole image.
        Will keep the input aspect ratio.
     """
-    def __init__(self, chance=0.5, fac_low=0.65, bg_imgs=[]):
+    def __init__(self, chance=0.5, fac_low=0.65, bg_imgs=None):
         self.chance = chance
         self.fac_low = fac_low
         self.fac_high = 1.0
 
         self.bg_imgs = bg_imgs
+        if bg_imgs is None:
+            self.bg_imgs = []
         return
 
     def __str__(self):
@@ -355,7 +357,7 @@ class Rotate3DWraper:
 class Rotate3DXWraper:
     """approximatively perspective change.
     """
-    def __init__(self, chance=0.5, fac=[0.05, 0.2]):
+    def __init__(self, chance=0.5, fac=(0.05, 0.2)):
         self.chance = chance 
         self.fac = fac
         self.scale_range = (0.7, 1.0)
@@ -377,6 +379,7 @@ class Rotate3DXWraper:
         scale = (scale_w, scale_h)
         img2 = tr.adjustPerspectiveX(img, fac=fac, scale=scale)
         return img2 
+
 
 class EraseWraper:
     """Randomly crop the upper header of each image.
