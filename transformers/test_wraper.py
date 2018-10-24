@@ -8,7 +8,7 @@ import logging
 import time
 
 import transform as tr
-import chain
+import wraper
 import utils
 
 log = logging.getLogger(__file__)
@@ -16,82 +16,82 @@ log.setLevel(logging.DEBUG)
 
 
 def getChain3():
-    worker = chain.Chain("chain3")
+    worker = wraper.Chain("wraper3")
 
-    resizer = chain.ResizeWraper(w=680, h=480, chance=1.0)
+    resizer = wraper.ResizeWraper(w=680, h=480, chance=1.0)
     worker.addOperator(resizer)
 
     #fmodel = "./model/haarcascade_frontalface_default.xml"
-    #facer = chain.FaceWraper(fmodel, chance=1.0)
+    #facer = wraper.FaceWraper(fmodel, chance=1.0)
     #worker.addOperator(facer)
 
-    eraser = chain.EraseWraper(chance=1.0)
+    eraser = wraper.EraseWraper(chance=1.0)
     worker.addOperator(eraser)
 
-    noiser = chain.NoiseWraper(chance=1.0, maxSigma=2)
+    noiser = wraper.NoiseWraper(chance=1.0, maxSigma=2)
     worker.addOperator(noiser)
 
-    aspect = chain.AspectWraper(chance=1.0)
+    aspect = wraper.AspectWraper(chance=1.0)
     worker.addOperator(aspect)
 
-    shrink = chain.ShrinkWraper(chance=1.0, fac_low=0.8)
+    shrink = wraper.ShrinkWraper(chance=1.0, fac_low=0.8)
     worker.addOperator(shrink)
 
     x = (-20, 20)
     y = (-20, 20)
     z = (-20, 20)
-    rotate3d = chain.Rotate3DWraper(chance=1.0,x=x, y=y, z=z)
+    rotate3d = wraper.Rotate3DWraper(chance=1.0,x=x, y=y, z=z)
     worker.addOperator(rotate3d)
 
-    shadow = chain.ShadowWraper(chance=1.0)
+    shadow = wraper.ShadowWraper(chance=1.0)
     worker.addOperator(shadow)
     return worker
 
 
 def getChain2():
-    worker = chain.Chain("chain2")
+    worker = wraper.Chain("wraper2")
 
-    resizer = chain.ResizeWraper(w=480, h=360, chance=1.0)
+    resizer = wraper.ResizeWraper(w=480, h=360, chance=1.0)
     worker.addOperator(resizer)
 
     #fmodel = "./model/haarcascade_frontalface_default.xml"
-    #facer = chain.FaceWraper(fmodel, chance=1.0)
+    #facer = wraper.FaceWraper(fmodel, chance=1.0)
     #worker.addOperator(facer)
 
-    shadow = chain.ShadowWraper(chance=0.5)
+    shadow = wraper.ShadowWraper(chance=0.5)
     worker.addOperator(shadow)
 
-    noiser = chain.NoiseWraper(chance=0.5, maxSigma=6)
+    noiser = wraper.NoiseWraper(chance=0.5, maxSigma=6)
     worker.addOperator(noiser) 
 
-    eraser = chain.EraseWraper(chance=1.0)
+    eraser = wraper.EraseWraper(chance=1.0)
     worker.addOperator(eraser)
 
-    rotate3d = chain.Rotate3DWraper(chance=1.0)
+    rotate3d = wraper.Rotate3DWraper(chance=1.0)
     worker.addOperator(rotate3d)
     return worker
 
 
 def getChain1():
-    worker = chain.Chain("chain1")
+    worker = wraper.Chain("wraper1")
 
     fmodel = "./model/haarcascade_frontalface_default.xml"
-    facer = chain.FaceWraper(fmodel, chance=1.0)
+    facer = wraper.FaceWraper(fmodel, chance=1.0)
     worker.addOperator(facer)
 
-    resizer = chain.ResizeWraper(w=480, h=360, chance=1.0)
+    resizer = wraper.ResizeWraper(w=480, h=360, chance=1.0)
     worker.addOperator(resizer)
 
-    noiser = chain.NoiseWraper(chance=1.0, maxSigma=6)
+    noiser = wraper.NoiseWraper(chance=1.0, maxSigma=6)
     worker.addOperator(noiser)
 
-    color = chain.ColorWraper(chance=1.0)
+    color = wraper.ColorWraper(chance=1.0)
     worker.addOperator(color)
 
-    eraser = chain.EraseWraper(chance=1.0)
+    eraser = wraper.EraseWraper(chance=1.0)
     worker.addOperator(eraser)
 
-    rotate3d = chain.Rotate3DWraper(chance=1.0)
+    rotate3d = wraper.Rotate3DWraper(chance=1.0)
     worker.addOperator(rotate3d)
     return worker
 
@@ -125,21 +125,21 @@ def testEffect(imgs):
 
 
 def tranImgs(imgs):
-    noise = chain.NoiseWraper(0.5, maxSigma=5)
+    noise = wraper.NoiseWraper(0.5, maxSigma=5)
     fmodel = "./model/haarcascade_frontalface_default.xml"
-    face = chain.FaceWraper(fmodel, 1.0)
-    color = chain.ColorWraper(0.5)
-    aspect = chain.AspectWraper(1.0)
-    shadow = chain.ShadowWraper(1.0)
+    face = wraper.FaceWraper(fmodel, 1.0)
+    color = wraper.ColorWraper(0.5)
+    aspect = wraper.AspectWraper(1.0)
+    shadow = wraper.ShadowWraper(1.0)
 
-    shrink = chain.ShrinkWraper(chance=1.0)
-    rotate2D = chain.Rotate2DWraper(chance=1.0, angle=(-30, 30))
-    rotate2DX = chain.Rotate2DXWraper(chance=1.0, angle=(-0.5, 0.5))
+    shrink = wraper.ShrinkWraper(chance=1.0)
+    rotate2D = wraper.Rotate2DWraper(chance=1.0, angle=(-30, 30))
+    rotate2DX = wraper.Rotate2DXWraper(chance=1.0, angle=(-0.5, 0.5))
 
-    rotate3D = chain.Rotate3DWraper(chance=1.0)
-    rotate3DX = chain.Rotate3DXWraper(chance=1.0)
+    rotate3D = wraper.Rotate3DWraper(chance=1.0)
+    rotate3DX = wraper.Rotate3DXWraper(chance=1.0)
 
-    croper = chain.EraseWraper(chance=1.0)
+    croper = wraper.EraseWraper(chance=1.0)
 
     print(noise)
     print(color)
