@@ -18,17 +18,18 @@ log.setLevel(logging.DEBUG)
 ## 1. Inspired by TorchVision
 ##    https://github.com/pytorch/vision/tree/master/torchvision/transforms
 ## 2. Implement based on Yu-Zhiyang's project
-##    https://github.com/YU-Zhiyang/opencv_transforms_torchvision/tree/master/cvtorchvision
+## https://github.com/YU-Zhiyang/opencv_transforms_torchvision/tree/master/cvtorchvision
 ## 3. OpenCV Vs. PIL: OpenCV2 is about 3+ times faster than PIL.
 ##    https://www.kaggle.com/vfdev5/pil-vs-opencv
 
 
 ## New
-## 1. Remove torch dependence, so it can be used for Caffe2, pytorch, or other DL frameworks;
-## 2. Add Face detection; 
+## 1. Remove torch dependence, so it can be used for Caffe2, pytorch,
+##    or other DL frameworks;
+## 2. Add Face detection;
 
 
-## NOTE: 
+## NOTE:
 #  1. The input of the operations should be cv2 image (numpy.array);
 #  2. The output of the operations should be cv2 image (numpy.array);
 
@@ -45,30 +46,29 @@ def showImg(img, title=None):
     plt.axis("off")
     if title is not None:
         plt.title(title)
-    plt.show()    
+    plt.show()
     return
 
 
 def showImgs(imgs, title="title"):
     windows = len(imgs)
     for i, img in enumerate(imgs):
-        ax = plt.subplot(1, windows, i+1)
+        ax = plt.subplot(1, windows, i + 1)
         ax.axis("off")
         plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-        ax.set_title("%s-%s"%(title, i))
-    plt.show()    
+        ax.set_title("%s-%s" % (title, i))
+    plt.show()
     return
 
 
 def saveImgs(imgs, fname, title="title"):
     windows = len(imgs)
     for i, img in enumerate(imgs):
-        ax = plt.subplot(1, windows, i+1)
+        ax = plt.subplot(1, windows, i + 1)
         ax.axis("off")
         plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-        ax.set_title("%s-%s"%(title, i))
-    #plt.show()
-    plt.savefig(fname)
+        ax.set_title("%s-%s" % (title, i))
+    plt.savefig(fname, bbox_inches='tight')
     return
 
 
@@ -90,8 +90,7 @@ def addNoise(img, sigma=2.0, mean=0):
     img2 = np.random.normal(0, sigma, size=img.shape)
 
     img2 += img
-    img2 = np.clip(np.uint8(img2), 0, 255)
-
+    img2 = np.uint8(img2.clip(0, 255))
     return img2
 
 
@@ -107,7 +106,7 @@ def adjustContrast(img, fac):
     """fac should be [0.5, 2.0]"""
     img2 = np.float32(img)
     mean = round(cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY).mean())
-    img2 = (1-fac) * mean + fac * img2
+    img2 = (1 - fac) * mean + fac * img2
     img2 = np.uint8(img2.clip(min=0, max=255))
     return img2
 
@@ -118,8 +117,8 @@ def adjustSaturation(img, fac):
     tmp = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     tmp = cv2.cvtColor(tmp, cv2.COLOR_GRAY2BGR)
 
-    img2 = (1-fac) * tmp + fac * img2
-    img2 = np.uint8(img2.clip(min=0, max=255)) 
+    img2 = (1 - fac) * tmp + fac * img2
+    img2 = np.uint8(img2.clip(0, 255))
     return img2
 
 
@@ -134,12 +133,12 @@ def adjustHue(img, fac):
 
 
 def adjustGamma(img, gamma, gain=1):
-    """gamma should be [0.6, 3.0]: 
-        larger gamma --> darker img; 
+    """gamma should be [0.6, 3.0]:
+        larger gamma --> darker img;
     """
     img2 = np.float32(img)
-    img2 = 255.0 * gain * np.power(img2/255.0, gamma)
-    img2 = np.uint8(img2.clip(min=0, max=255))  
+    img2 = 255.0 * gain * np.power(img2 / 255.0, gamma)
+    img2 = np.uint8(img2.clip(min=0, max=255))
     return img2
 
 
@@ -159,7 +158,7 @@ def paste(bg_img, img, x_offset, y_offset):
     try:
         bg_img[y1:y2, x1:x2, 0:c] = img[:, :, 0:c]
     except IndexError:
-        log.error("index exception.")    
+        log.error("index exception.")
     return bg_img
 
 
@@ -169,21 +168,21 @@ def doAdjustAspectRatio(img, ratio):
     """
     #1. resize img with-regard to the new ratio
     h, w, _ = img.shape
-    r = float(w)/h
+    r = float(w) / h
     if math.fabs(ratio - r) < 0.005:
         log.debug("abort adjust aspect ratio: %.3f Vs. %.3f" % (ratio, r))
         return None
-    
+
     h2 = int(w / ratio)
     w2 = int(h * ratio)
 
     w_new = w
     h_new = h2
-    if w2*h > w * h2:
+    if w2 * h > w * h2:
         w_new = w2
         h_new = h
 
-    scale = 1.0/max(w_new/w, h_new/h)
+    scale = 1.0 / max(w_new / w, h_new / h)
     inner = cv2.resize(img, dsize=(w_new, h_new))
     inner = cv2.resize(inner, None, fx=scale, fy=scale)
     return inner
@@ -191,7 +190,8 @@ def doAdjustAspectRatio(img, ratio):
 
 def adjustAspectRatio(img, ratio, bg_img=None):
     """ratio = width/height.
-       Return a new image with the same size as the original one, gaussian filled, or bg_img.
+       Return a new image with the same size as the original one,
+       gaussian filled, or bg_img.
     """
     inner = doAdjustAspectRatio(img, ratio)
     if inner is None:
@@ -203,7 +203,7 @@ def adjustAspectRatio(img, ratio, bg_img=None):
         img2 = np.uint8(np.random.normal(0, sigma, size=img.shape))
     else:
         img2 = bg_img.copy()
-    
+
     def _getRandom(n):
         if n < 1:
             return 0
@@ -211,7 +211,7 @@ def adjustAspectRatio(img, ratio, bg_img=None):
 
     x_offset = _getRandom(img2.shape[1] - inner.shape[1])
     y_offset = _getRandom(img2.shape[0] - inner.shape[0])
-    #x_offset, y_offset = 0, 
+    #x_offset, y_offset = 0,
     #log.debug("(%d, %d) %s, %s" % (x_offset, y_offset, img2.shape, inner.shape))
     img2 = paste(img2, inner, x_offset, y_offset)
     return img2
@@ -226,12 +226,12 @@ def gradualShadeV(img, brightness, direction=0):
     img2 = np.float32(img)
 
     if direction % 2 == 0:
-        alpha = -1.0 * brightness/5
+        alpha = -1.0 * brightness / 5.0
         sign = -1
     else:
-        alpha = -4.0 * brightness/5
+        alpha = -4.0 * brightness / 5.0
         sign = 1
-        
+
     delta = brightness / float(h)
 
     for j in range(h):
@@ -253,19 +253,19 @@ def gradualShadeH(img, brightness, direction=0):
     img2 = np.float32(img)
 
     if direction % 2 == 0:
-        alpha = -1.0 * brightness/5
+        alpha = -1.0 * brightness / 5.0
         sign = -1
     else:
-        alpha = -4.0 * brightness/5
+        alpha = -4.0 * brightness / 5.0
         sign = 1
-        
+
     delta = brightness / float(w)
 
     for i in range(w):
         alpha += delta
         t = 1 + sign * alpha
         img2[:, i, :] = img2[:, i, :] * t
-        
+
     img2 = np.uint8(img2.clip(0, 255))
     return img2
 
@@ -307,7 +307,7 @@ def crop(img, size, point=(0, 0)):
 
     x2 = min(x + h, hf) - 1
     y2 = min(y + w, wf) - 1
-    log.debug("w = %d, x2=%d, %s"%(w, x2, img.shape))
+    log.debug("w = %d, x2=%d, %s" % (w, x2, img.shape))
     img2 = img[x:x2, y:y2, :].copy()
     return img2
 
@@ -322,12 +322,12 @@ def rotate2D(img, angle, scale=0.90):
 
     TODO1: automatically calculate the scale needed;
     """
-    if math.fabs(math.tan(angle*math.pi/180)) > 0.8:
+    if math.fabs(math.tan(angle * math.pi / 180.0)) > 0.8:
         if scale > 0.80:
             scale = 0.80
 
     h, w, _ = img.shape
-    center = (w/2, h/2)
+    center = (w / 2.0, h / 2.0)
     tmp = cv2.getRotationMatrix2D(center, angle, scale)
 
     fcolor = _genRandomColor()
@@ -348,21 +348,21 @@ def rotate2DX(img, fac):
     h, w, _ = img.shape
     dw = int(fac * h)
     dh = int(fac * w)
-    
+
     ## needs to pick three points
     if fac > 0:
         dh = min(dh, h)
         pts1 = np.float32([[0, 0], [w, 0], [0, h]])
-        pts2 = np.float32([[dw, 0], [w, dh], [0, h-dh]])
+        pts2 = np.float32([[dw, 0], [w, dh], [0, h - dh]])
     else:
         dw, dh = -dw, -dh
         dh = min(dw, h)
         pts1 = np.float32([[0, 0], [0, h], [w, h]])
-        pts2 = np.float32([[0, dh], [dw, h], [w, h-dh]])
+        pts2 = np.float32([[0, dh], [dw, h], [w, h - dh]])
 
     M = cv2.getAffineTransform(pts1, pts2)
     fcolor = _genRandomColor()
-    img2 = cv2.warpAffine(img,M,(w,h), borderValue=fcolor) 
+    img2 = cv2.warpAffine(img, M, (w, h), borderValue=fcolor)
     return img2
 
 
@@ -371,14 +371,15 @@ def _genRandomColor():
     b = random.randint(0, 255)
     g = random.randint(0, 255)
     r = random.randint(0, 255)
-    return (b, g, r) 
+    return (b, g, r)
 
 
 def adjustPerspectiveX(img, idx=-1, fac=0.15, scale=(1.0, 1.0)):
     """approximatively perspective change.
     fac should be [0.05, 0.2]
-    https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_imgproc/py_geometric_transformations/py_geometric_transformations.html
-    TODO: 
+    https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/
+       py_imgproc/py_geometric_transformations/py_geometric_transformations.html
+    TODO:
       1. use switch-case to compute only the needed pts2;
       2. adjust the corner with scale taking into account;
     """
@@ -387,7 +388,7 @@ def adjustPerspectiveX(img, idx=-1, fac=0.15, scale=(1.0, 1.0)):
     w, h = int(w1 * scale[0]), int(h1 * scale[1])
     aw = (w1 - w) // 2
     ah = (h1 - h) // 2
-    
+
     dh = int(fac * w)
     dw = int(fac * h)
     pts1 = np.float32([[0, 0], [w1, 0], [0, h1], [w1, h1]])
@@ -395,39 +396,39 @@ def adjustPerspectiveX(img, idx=-1, fac=0.15, scale=(1.0, 1.0)):
     views = []
     #1. from left to right
     #pts2 = np.float32([[0, 0], [w-dw, dh], [0, h], [w-dw, h-dh]])
-    pts2 = np.float32([[aw, ah], [w-dw, dh], [aw, h-ah], [w-dw, h-dh]])
+    pts2 = np.float32([[aw, ah], [w - dw, dh], [aw, h - ah], [w - dw, h - dh]])
     views.append(pts2)
 
     #2. from right to left
-    pts2 = np.float32([[dw, dh], [w, 0], [dw, h-dh], [w, h]]) 
+    pts2 = np.float32([[dw, dh], [w, 0], [dw, h - dh], [w, h]])
     views.append(pts2)
 
     #3. from bottom to head
-    pts2 = np.float32([[dw, dh], [w-dw, dh], [0, h], [w, h]])
+    pts2 = np.float32([[dw, dh], [w - dw, dh], [0, h], [w, h]])
     views.append(pts2)
 
     #4. from header to bottom
-    pts2 = np.float32([[0, 0], [w, 0], [dw, h-dh], [w-dw, h-dh]])
+    pts2 = np.float32([[0, 0], [w, 0], [dw, h - dh], [w - dw, h - dh]])
     views.append(pts2)
 
     ##5. from top-left to bottom-right
-    pts2 = np.float32([[0, 0], [w-dw/2, dh/2], [dw/2, h-dh/2], [w-dw, h-dh]])
-    views.append(pts2) 
+    pts2 = np.float32([[0, 0], [w - dw/2, dh/2], [dw/2, h-dh/2], [w-dw, h-dh]])
+    views.append(pts2)
 
     #6. from bottom-right to top-left
-    pts2 = np.float32([[dw, dh], [w-dw/2, dh/2], [dw/2, h-dh/2], [w, h]]) 
+    pts2 = np.float32([[dw, dh], [w-dw/2, dh/2], [dw/2, h-dh/2], [w, h]])
     views.append(pts2)
     pts2 = np.float32([[0, 0], [w-dw/2, dh/2], [dw/2, h-dh/2], [w, h]])
-    views.append(pts2) 
+    views.append(pts2)
 
     #7. from top-right to bottom-left
     pts2 = np.float32([[dw/2, dh/2], [w, 0], [dw, h-dh], [w-dw/2, h-dh/2]])
-    views.append(pts2) 
+    views.append(pts2)
 
     #8. from bottom-left to top-right
     pts2 = np.float32([[dw/2, dh/2], [w-dw, dh], [0, h], [w-dw/2, h-dh/2]])
     views.append(pts2)
-    pts2 = np.float32([[dw/2, dh/2], [w, 0], [0, h], [w-dw/2, h-dh/2]]) 
+    pts2 = np.float32([[dw/2, dh/2], [w, 0], [0, h], [w-dw/2, h-dh/2]])
     views.append(pts2)
 
     if idx < 0:
@@ -438,7 +439,8 @@ def adjustPerspectiveX(img, idx=-1, fac=0.15, scale=(1.0, 1.0)):
     pts2 = views[idx]
     fcolor = _genRandomColor()
     M = cv2.getPerspectiveTransform(pts1, pts2)
-    img2 = cv2.warpPerspective(img, M, (w, h), borderMode=cv2.BORDER_CONSTANT, borderValue=fcolor)
+    img2 = cv2.warpPerspective(img, M, (w, h),
+               borderMode=cv2.BORDER_CONSTANT, borderValue=fcolor)
 
     ##  get it back
     #M = cv2.getPerspectiveTransform(pts2, pts1)
@@ -447,13 +449,14 @@ def adjustPerspectiveX(img, idx=-1, fac=0.15, scale=(1.0, 1.0)):
 
 
 def adjustPerspective(img, anglex=0, angley=0, anglez=0, shear=0, fov=45,
-                translate=(0, 0), scale=(0.85, 0.85), resample=cv2.INTER_LINEAR, fillcolor=None):
+                translate=(0, 0), scale=(0.85, 0.85),
+                resample=cv2.INTER_LINEAR, fillcolor=None):
     """
     Precisely perspective change.
     Note: No need simpleRotate after this operation.
 
-    This function is from YU-Zhiyang
-        https://github.com/YU-Zhiyang/opencv_transforms_torchvision/tree/master/cvtorchvision
+    This function is from YU-Zhiyang:
+ https://github.com/YU-Zhiyang/opencv_transforms_torchvision/tree/master/cvtorchvision
 
     anglex, angley, anglez, shear: [-180, 180]
     """
@@ -484,7 +487,8 @@ def adjustPerspective(img, anglex=0, angley=0, anglez=0, shear=0, fov=45,
     M11 = + cosb * (lambda1 * sina ** 2 + lambda2 * cosa ** 2) + sinb * (lambda2 - lambda1) * sina * cosa
     M02 = centerx - M00 * centerx - M01 * centery + tx
     M12 = centery - M10 * centerx - M11 * centery + ty
-    affine_matrix = np.array([[M00, M01, M02], [M10, M11, M12], [0, 0, 1]], dtype=np.float32)
+    affine_matrix = np.array([[M00, M01, M02], [M10, M11, M12], [0, 0, 1]],
+                        dtype=np.float32)
     # -------------------------------------------------------------------------------
     z = np.sqrt(w ** 2 + h ** 2) / 2 / np.tan(math.radians(fov / 2))
 
@@ -533,19 +537,19 @@ def adjustPerspective(img, anglex=0, angley=0, anglez=0, shear=0, fov=45,
     if fillcolor is None:
         fillcolor = _genRandomColor()
     result_img = cv2.warpPerspective(img, total_matrix, (w, h), flags=resample,
-                                     borderMode=cv2.BORDER_CONSTANT, borderValue=fillcolor)
+                        borderMode=cv2.BORDER_CONSTANT, borderValue=fillcolor)
     return result_img.astype(imgtype)
 
 
 def _randomFill(img, area, mean, sigma):
     x, y, w, h = area
     rnd = np.random.normal(mean, sigma, (h, w, 3))
-    img[y:y+h, x:x+w] = np.uint8(rnd) 
+    img[y:y + h, x:x + w] = np.uint8(rnd)
     return
 
 
 def eraseFace(model, img, mean=127, sigma=8):
-    """Use CascadeClassifier to detect faces, 
+    """Use CascadeClassifier to detect faces,
        and erase the area with random filling.
 
        model: is a cv2.CascadeClassifier;
@@ -556,14 +560,13 @@ def eraseFace(model, img, mean=127, sigma=8):
     faces = model.detectMultiScale(gray, 1.3, 5)
 
     img2 = img
-    num = min(2, len(faces)) # detect at most 2 faces
+    num = min(2, len(faces))  # detect at most 2 faces
     for i in range(num):
         x, y, w, h = faces[i]
-        cv2.rectangle(img, (x,y), (x+w, y+h), (0,0,255), 3) 
-
+        #cv2.rectangle(img, (x, y), (x+w, y+h), (0, 0,255), 3)
         # expand it to cover hair and neck.
-        dw = int(w*0.1)
-        dh = int(h*0.15)
+        dw = int(w * 0.1)
+        dh = int(h * 0.15)
         w = w + 2 * dw
         h = h + 2 * dh
         x -= dw
@@ -571,5 +574,5 @@ def eraseFace(model, img, mean=127, sigma=8):
 
         area = (x, y, w, h)
         _randomFill(img2, area, mean, sigma)
-    
+
     return img2

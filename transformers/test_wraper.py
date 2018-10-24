@@ -18,7 +18,7 @@ log.setLevel(logging.DEBUG)
 def getChain3():
     worker = chain.Chain("chain3")
 
-    resizer = chain.ResizeWraper(w=480, h=480, chance=1.0)
+    resizer = chain.ResizeWraper(w=680, h=480, chance=1.0)
     worker.addOperator(resizer)
 
     #fmodel = "./model/haarcascade_frontalface_default.xml"
@@ -51,7 +51,7 @@ def getChain3():
 def getChain2():
     worker = chain.Chain("chain2")
 
-    resizer = chain.ResizeWraper(w=480, h=480, chance=1.0)
+    resizer = chain.ResizeWraper(w=480, h=360, chance=1.0)
     worker.addOperator(resizer)
 
     #fmodel = "./model/haarcascade_frontalface_default.xml"
@@ -79,7 +79,7 @@ def getChain1():
     facer = chain.FaceWraper(fmodel, chance=1.0)
     worker.addOperator(facer)
 
-    resizer = chain.ResizeWraper(w=480, h=480, chance=1.0)
+    resizer = chain.ResizeWraper(w=480, h=360, chance=1.0)
     worker.addOperator(resizer)
 
     noiser = chain.NoiseWraper(chance=1.0, maxSigma=6)
@@ -97,7 +97,7 @@ def getChain1():
 
 
 def testPerformance(imgs):
-    worker = getChain1()
+    worker = getChain2()
     log.info("%s" % (worker))
 
     start = time.time()
@@ -118,7 +118,7 @@ def testEffect(imgs):
     for i in range(len(imgs)):
         img = imgs[i]
         img2 = worker.run(img)
-        img = tr.resize(img, (480, 480))
+        img = tr.resize(img, (480, 360))
         tr.showImgs([img, img2])
         #tr.saveImgs([img, img2], "./result/%d.jpg"%(i))
     return
@@ -167,7 +167,9 @@ def tranImgs(imgs):
 
 
 def testImgs():
-    fnames = utils.getFileNames("../data/driver/")
+    #dir = "../data/driver/"
+    dir = "/Users/songbin/dev/data/docID/small/"
+    fnames = utils.getFileNames(dir)
     imgs = []
     for fname in fnames:
         img = tr.loadImage(fname)
