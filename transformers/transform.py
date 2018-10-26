@@ -162,6 +162,19 @@ def paste(bg_img, img, x_offset, y_offset):
     return bg_img
 
 
+def randomPaste(bg_img, img):
+    """randomly paste img into bg_img."""
+    if img.shape[0] > bg_img.shape[0] or img.shape[1] > bg_img.shape[1]:
+        log.error("Failed to paste: inner is bigger.")
+        return img
+
+    x_offset = random.randint(0, bg_img.shape[1] - img.shape[1])
+    y_offset = random.randint(0, bg_img.shape[0] - img.shape[0])
+
+    img2 = paste(bg_img, img, x_offset, y_offset)
+    return img2
+
+
 def doAdjustAspectRatio(img, ratio):
     """
     The resulting image size will be different from the input img.
@@ -204,16 +217,7 @@ def adjustAspectRatio(img, ratio, bg_img=None):
     else:
         img2 = bg_img.copy()
 
-    def _getRandom(n):
-        if n < 1:
-            return 0
-        return random.randint(0, n)
-
-    x_offset = _getRandom(img2.shape[1] - inner.shape[1])
-    y_offset = _getRandom(img2.shape[0] - inner.shape[0])
-    #x_offset, y_offset = 0,
-    #log.debug("(%d, %d) %s, %s" % (x_offset, y_offset, img2.shape, inner.shape))
-    img2 = paste(img2, inner, x_offset, y_offset)
+    img2 = randomPaste(img2, inner)
     return img2
 
 
@@ -374,6 +378,18 @@ def _genRandomColor():
     return (b, g, r)
 
 
+def _genRandomImg(shape, sigma=5.0):
+    if random.random() > 0.5:
+        bg_img = np.uint8(np.random.normal(0, sigma, size=shape))
+    else:
+        bg_img = np.zeros(shape, dtype=np.uint8)
+        for c in range(shape[2]):
+            bg_img[:, :, c] = random.randint(0, 255)
+
+    assert bg_img.shape == shape, "unexpected shape."        
+    return bg_img
+
+
 def adjustPerspectiveX(img, idx=-1, fac=0.15, scale=(1.0, 1.0)):
     """approximatively perspective change.
     fac should be [0.05, 0.2]
@@ -445,6 +461,11 @@ def adjustPerspectiveX(img, idx=-1, fac=0.15, scale=(1.0, 1.0)):
     ##  get it back
     #M = cv2.getPerspectiveTransform(pts2, pts1)
     #img3 = cv2.warpPerspective(img2, M, (w, h))
+
+    if w != w1 or h != h1:
+        bg_img = _genRandomImg(img.shape)
+        img2 = randomPaste(bg_img, img2)
+    
     return img2
 
 

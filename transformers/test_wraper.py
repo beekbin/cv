@@ -14,11 +14,12 @@ import utils
 log = logging.getLogger(__file__)
 log.setLevel(logging.DEBUG)
 
+SIZE = (320, 320)
 
 def getChain3():
     worker = wraper.Chain("wraper3")
 
-    resizer = wraper.ResizeWraper(w=680, h=480, chance=1.0)
+    resizer = wraper.ResizeWraper(w=SIZE[0], h=SIZE[1], chance=1.0)
     worker.addOperator(resizer)
 
     #fmodel = "./model/haarcascade_frontalface_default.xml"
@@ -51,7 +52,7 @@ def getChain3():
 def getChain2():
     worker = wraper.Chain("wraper2")
 
-    resizer = wraper.ResizeWraper(w=480, h=360, chance=1.0)
+    resizer = wraper.ResizeWraper(w=SIZE[0], h=SIZE[1], chance=1.0)
     worker.addOperator(resizer)
 
     #fmodel = "./model/haarcascade_frontalface_default.xml"
@@ -79,7 +80,7 @@ def getChain1():
     facer = wraper.FaceWraper(fmodel, chance=1.0)
     worker.addOperator(facer)
 
-    resizer = wraper.ResizeWraper(w=480, h=360, chance=1.0)
+    resizer = wraper.ResizeWraper(w=SIZE[0], h=SIZE[1], chance=1.0)
     worker.addOperator(resizer)
 
     noiser = wraper.NoiseWraper(chance=1.0, maxSigma=6)
@@ -91,7 +92,8 @@ def getChain1():
     eraser = wraper.EraseWraper(chance=1.0)
     worker.addOperator(eraser)
 
-    rotate3d = wraper.Rotate3DWraper(chance=1.0)
+    #rotate3d = wraper.Rotate3DWraper(chance=1.0)
+    rotate3d = wraper.Rotate3DXWraper(chance=1.0)
     worker.addOperator(rotate3d)
     return worker
 
@@ -118,7 +120,7 @@ def testEffect(imgs):
     for i in range(len(imgs)):
         img = imgs[i]
         img2 = worker.run(img)
-        img = tr.resize(img, (480, 360))
+        img = tr.resize(img, SIZE)
         tr.showImgs([img, img2])
         #tr.saveImgs([img, img2], "./result/%d.jpg"%(i))
     return
@@ -150,11 +152,11 @@ def tranImgs(imgs):
         img = tr.resize(img, (480, 360))
 
         img2 = face.run(img2)
-        img2 = tr.resize(img2, (480, 360))
+        #img2 = tr.resize(img2, (480, 360))
         #img2 = eraser.run(img2)
-        img2 = croper.run(img2)
+        #img2 = croper.run(img2)
         #img2 = rotate2DX.run(img2)
-        img2 = rotate3D.run(img2)
+        img2 = rotate3DX.run(img2)
         #img2 = noise.run(img2)
 
         #img2 = color.run(img2)
@@ -167,8 +169,8 @@ def tranImgs(imgs):
 
 
 def testImgs():
-    #dir = "../data/driver/"
-    dir = "/Users/songbin/dev/data/docID/small/"
+    dir = "../data/driver/"
+    #dir = "/Users/songbin/dev/data/docID/small/"
     fnames = utils.getFileNames(dir)
     imgs = []
     for fname in fnames:
