@@ -563,9 +563,37 @@ def adjustPerspective(img, anglex=0, angley=0, anglez=0, shear=0, fov=45,
 
 
 def _randomFill(img, area, mean, sigma):
+    h0, w0, _ = img.shape
     x, y, w, h = area
+
+    #1. expand it to cover hair and neck.
+    dw = int(w * 0.1)
+    dh = int(h * 0.15)
+
+    if x > dw:
+        x -= dw
+        w += dw
+
+    if y > dh:
+        y -= dh
+        h += dh
+
+    if x + w + dw < w0:
+        w += dw
+
+    if y + h + dh < h0:
+        h += dh
+
+    #2. erase the face area
     rnd = np.random.normal(mean, sigma, (h, w, 3))
-    img[y:y + h, x:x + w] = np.uint8(rnd)
+    try:
+        img[y:y + h, x:x + w] = np.uint8(rnd)
+    except IndexError as e:
+        log.error("Index error: %s" % (e))
+        log.error("area=%s, shape=%s" % (area, img.shape))
+    except ValueError as e:
+        log.error("Value error: %s" % (e))
+        log.error("area=%s, shape=%s" % (area, img.shape))
     return
 
 
@@ -583,17 +611,10 @@ def eraseFace(model, img, mean=127, sigma=8):
     img2 = img
     num = min(2, len(faces))  # detect at most 2 faces
     for i in range(num):
-        x, y, w, h = faces[i]
+        #x, y, w, h = faces[i]
         #cv2.rectangle(img, (x, y), (x+w, y+h), (0, 0,255), 3)
         # expand it to cover hair and neck.
-        dw = int(w * 0.1)
-        dh = int(h * 0.15)
-        w = w + 2 * dw
-        h = h + 2 * dh
-        x -= dw
-        y -= dh
-
-        area = (x, y, w, h)
-        _randomFill(img2, area, mean, sigma)
+        #area = (x, y, w, h)
+        _randomFill(img2, faces[i], mean, sigma)
 
     return img2
