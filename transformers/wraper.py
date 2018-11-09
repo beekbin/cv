@@ -7,9 +7,11 @@ from __future__ import unicode_literals
 import logging
 import random
 import math
+import string
 import numpy as np
 import transform as tr
 import cv2
+import os
 
 log = logging.getLogger(__file__)
 log.setLevel(logging.DEBUG)
@@ -194,6 +196,7 @@ class ShrinkWraper:
 
         #1. shrink it
         fac = random.uniform(self.fac_low, self.fac_high)
+        log.debug("fac = %.3f" % (fac))
         if math.fabs(fac - 1.0) < 0.02:
             return img
 
@@ -441,3 +444,202 @@ class Chain:
         return img2
 
 
+def _getFileNames(adir):
+    result = []
+    if os.path.isfile(adir):
+        result.append(adir)
+        return
+
+    if not os.path.isdir(adir):
+        log.error("%s is not a directory" % (adir))
+        return result
+    
+    for fname in os.listdir(adir):
+        fpath = os.path.join(adir, fname)
+        if os.path.isfile(fpath):
+            result.append(fpath)
+    return result
+
+
+class RandomObjects:
+    """Add randomly objects to img.
+    Objects: lines, text, eclipse.
+    """
+    def __init__(self):
+        self.chars = string.ascii_uppercase + string.digits
+        return
+
+    def drawLines(self, img):
+        h, w, _ = img.shape
+        num = random.randint(2, 4)
+        for _ in range(num):
+            x1 = random.randint(5, w-5)
+            x2 = random.randint(5, w-5)
+            rcolor = tr._genRandomColor()
+            thick = random.randint(1, 10)
+            cv2.line(img, (x1, 0), (x2, h), rcolor, thick)
+
+        num = random.randint(2, 4)
+        for _ in range(num):
+            y1 = random.randint(5, h-5)
+            y2 = random.randint(5, h-5)
+            rcolor = tr._genRandomColor()
+            thick = random.randint(1, 10)
+            cv2.line(img, (0, y1), (w, y2), rcolor, thick) 
+        return
+
+    def randomString(self, size):
+        txt = ''.join(random.choice(self.chars) for _ in range(size))
+        if random.random() < 0.5:
+            txt = txt.lower()
+        return txt
+
+    def randomEdgePoint(self, w, h):
+        if random.random() < 0.5:
+            x = random.randint(10, w // 4)
+        else:
+            x = random.randint(2*w//3, w-5)
+
+        if random.random() < 0.5:
+            y = random.randint(10, h // 4)
+        else:
+            y = random.randint(2*h//3, h-5)
+
+        return (x, y)
+
+    def drawText(self, img):
+        h, w, _ = img.shape
+        font = cv2.FONT_HERSHEY_SIMPLEX
+
+        num = random.randint(2, 10)
+        for _ in range(num):
+            txt = self.randomString(num+6)
+            rcolor = tr._genRandomColor()
+            point = self.randomEdgePoint(w, h)
+            scale = 2 * random.random() + 0.5
+            thickness = random.randint(1, 5)
+            cv2.putText(img, txt, point, font, scale, rcolor, thickness)
+        return
+
+    def drawEclipse(self, img):
+        h, w, _ = img.shape
+
+        num = random.randint(4, 10)
+        for _ in range(num):
+            pt1 = self.randomEdgePoint(w, h)
+            x, y = pt1
+            maxw = min(x, w-x)
+            maxh = min(y, h-y)
+
+            len1 = int(random.uniform(10, maxw))
+            len2 = int(random.uniform(10, maxh))
+            size = (len1, len2)
+
+            angle = random.randint(-45, 45)
+            thickness = random.randint(1, 10)
+            if random.random() < 0.5:
+                thickness = 0 - thickness
+
+            color = tr._genRandomColor()
+            cv2.ellipse(img, pt1, size, angle, 0, 360, color, thickness)
+        return
+
+
+class BackGroundWraper:
+    """
+    Add some randomly background to the image.
+    Note: will randomly shrink the image as well.
+    """
+    def __init__(self, chance=0.5, fac_low=0.65):
+        self.chance = chance
+        self.bg_imgs = []
+        self.fac_low = fac_low
+        self.fac_high = 1.0
+        self.objectDrawer = RandomObjects()
+        return
+
+    def reSizeBgImgs(self, w, h):
+        for i in range(len(self.bg_imgs)):
+            self.bg_imgs[i] = cv2.resize(self.bg_imgs[i], (w, h))
+        return
+
+    def loadImgs(self, fdir, size=None):
+        fnames = _getFileNames(fdir)
+        if len(fnames) < 1:
+            log.error("Failed to load bg-images.")
+            return
+
+        for fname in fnames:
+            img = tr.loadImage(fname)
+            if img is None:
+                log.warning("failed to load img: %s" % (fname))
+                continue
+            if size is not None:
+                img = cv2.resize(img, size)
+            self.bg_imgs.append(img)
+
+        log.debug("load %d bg-images from %s" % (len(self.bg_imgs), fdir))    
+        return
+
+    def setImgs(self, imgs):
+        self.bg_imgs = imgs
+        return
+
+    def addObjects(self, img):
+        self.objectDrawer.drawLines(img)
+        self.objectDrawer.drawText(img)
+        self.objectDrawer.drawEclipse(img)
+        return
+
+    def _genRandomImg(self, size):
+        bg_img = np.full(size, 0, np.uint8)
+        fcolor = tr._genRandomColor()
+        
+        for i in range(size[2]):
+            bg_img[:, :, i] = fcolor[i]
+        return bg_img
+
+    def _randomImg(self, shape):
+        """get a backgroud image randomly"""
+        n = len(self.bg_imgs)
+        index = random.randint(0, 2*n + 2)
+        if index < n:
+            size = (shape[1], shape[0])
+            bg_img = cv2.resize(self.bg_imgs[index], size)
+        elif index % 2 == 0:
+            # get a constatn color bg image
+            bg_img = self._genRandomImg(shape)
+        else:
+            # get a totally random bg image
+            sigma = 40.0
+            bg_img = np.random.normal(128.0, sigma, shape)
+            bg_img = np.uint8(bg_img)
+
+        self.addObjects(bg_img)    
+        return bg_img
+
+
+    def run(self, img):
+        if random.random() > self.chance:
+            return img
+
+        #1. shrink it
+        fac = random.uniform(self.fac_low, self.fac_high)
+        if math.fabs(fac - 1.0) < 0.02:
+            return img
+
+        h, w, _ = img.shape
+        h, w = int(fac*h), int(fac * w)
+        img2 = tr.resize(img, (w, h))
+
+        #2. past it to background image
+        bg_img = self._randomImg(img.shape)
+
+        #3. paste it to the background image
+        dh = img.shape[0] - h
+        dw = img.shape[1] - w
+        x_offset = random.randint(0, dw)
+        y_offset = random.randint(0, dh)
+
+        img2 = tr.paste(bg_img, img2, x_offset, y_offset)
+        return img2

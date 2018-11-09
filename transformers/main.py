@@ -13,7 +13,8 @@ log.setLevel(logging.DEBUG)
 
 
 def testImgs():
-    fnames = utils.getFileNames("../data/driver/")
+    #fnames = utils.getFileNames("../data/driver/")
+    fnames = utils.getFileNames("../data/ca/")
     imgs = []
     for fname in fnames:
         img = tr.loadImage(fname)
@@ -26,11 +27,14 @@ def testImgs():
 def tranImgs(imgs):
     for i in range(len(imgs)):
         img = imgs[i]
-        img = tr.resize(img, (480, 480))
-        img2 = tr.addNoise(img, sigma=5.0)
-        #img2 = tr.adjustBrightness(img2, 0.58)
-        #img2 = tr.adjustContrast(img2, 1.33)
-        #img2 = tr.adjustSaturation(img, 1.62)
+        img = tr.resize(img, (600, 400))
+        #img2 = tr.addNoise(img, sigma=5.0)
+        img2 = img.copy()
+        fac = 2.5
+        log.info("fac = %.3f" % (fac))
+        #img2 = tr.adjustBrightness(img2, fac)
+        #img2 = tr.adjustContrast(img2, fac)
+        img2 = tr.adjustSaturation(img, fac)
         #img2 = tr.adjustHue(img, 0.2)
         #img2 = tr.adjustGamma(img2, 1.4)
     
@@ -42,14 +46,15 @@ def tranImgs(imgs):
 
         #img2 = tr.crop(img2, (1.0, 0.3), point=(0.0, 0.0))
         #img2 = tr.adjustAspectRatio(img, 2.0)
-        scale=(1.0, 1.0)
+        #scale=(1.0, 1.0)
         #translate = (5, 7)
-        img2 = tr.adjustPerspective(img2, anglex=0, angley=0, anglez=15, shear=0, scale=scale)
+        #img2 = tr.adjustPerspective(img2, anglex=0, angley=0, anglez=15, shear=0, scale=scale)
         #img3 = tr.adjustPerspective(img, anglex=30, angley=0, anglez=45, shear=0)
         #img2 = tr.adjustPerspectiveX(img2)
         tr.showImgs([img, img2])
         #tr.saveImgs([img, img2], "./result/%d.jpg" % (i))
     return
+
 
 def test():
     #fname = "../data/driver/songbin2.png"

@@ -14,7 +14,7 @@ import utils
 log = logging.getLogger(__file__)
 log.setLevel(logging.DEBUG)
 
-SIZE = (320, 320)
+SIZE = (352, 352)
 
 def getChain3():
     worker = wraper.Chain("wraper3")
@@ -98,6 +98,19 @@ def getChain1():
     return worker
 
 
+def getChain0():
+    worker = wraper.Chain("single worker")
+
+    shrinker = wraper.ShrinkWraper(chance=1.0, fac_low=0.50)
+    shrinker.fac_high = 0.52
+    worker.addOperator(shrinker)
+
+    resizer = wraper.ResizeWraper(w=SIZE[0], h=SIZE[1], chance=1.0)
+    worker.addOperator(resizer)
+
+    return worker
+
+
 def testPerformance(imgs):
     worker = getChain2()
     log.info("%s" % (worker))
@@ -115,7 +128,7 @@ def testPerformance(imgs):
 
 
 def testEffect(imgs):
-    worker = getChain1()
+    worker = getChain0()
     log.info("%s" % (worker))
     for i in range(len(imgs)):
         img = imgs[i]
@@ -168,16 +181,42 @@ def tranImgs(imgs):
     return
 
 
-def testImgs():
-    dir = "../data/driver/"
-    #dir = "/Users/songbin/dev/data/docID/small/"
-    fnames = utils.getFileNames(dir)
+def loadImgs(adir):
+    """load images from a directory"""
+    fnames = utils.getFileNames(adir)
     imgs = []
     for fname in fnames:
         img = tr.loadImage(fname)
         imgs.append(img)
 
     log.debug("%d imgs." % (len(imgs)))
+    return imgs
+
+
+def testBg():
+    #adir = "../data/driver"
+    adir = "/Users/songbin/dev/data/docID/small/"
+    imgs = loadImgs(adir)
+    bg_imgs = "/Users/songbin/dev/data/bg"
+
+    bgwarper = wraper.BackGroundWraper(chance=1.0)
+    bgwarper.loadImgs(bg_imgs, (480, 360))
+
+    for i in range(len(imgs)):
+        img = imgs[i]
+
+        img = tr.resize(img, (480, 360))
+        img2 = img.copy()
+        img2 = bgwarper.run(img2)
+
+        tr.showImgs([img, img2])
+    return
+
+
+def testImgs():
+    """test background wraper"""
+    adir = "../data/driver/"
+    imgs = loadImgs(adir)
     testEffect(imgs)
     #testPerformance(imgs)
     return
@@ -185,7 +224,8 @@ def testImgs():
 
 def main():
     #test()
-    testImgs()
+    #testImgs()
+    testBg()
     return
 
 

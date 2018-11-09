@@ -29,19 +29,18 @@ def setupLog():
     return
 
 
-def getFileNames(dir):
+def getFileNames(adir):
     result = []
-    if os.path.isfile(dir):
-        result.append(dir)
+    if os.path.isfile(adir):
+        result.append(adir)
         return
 
-    if not os.path.isdir(dir):
+    if not os.path.isdir(adir):
         log.error("not a directory")
         return result
     
-    for fname in os.listdir(dir):
-        fpath = os.path.join(dir, fname)
+    for fname in os.listdir(adir):
+        fpath = os.path.join(adir, fname)
         if os.path.isfile(fpath):
             result.append(fpath)
     return result
-
