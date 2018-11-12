@@ -80,8 +80,16 @@ def getChain1():
     facer = wraper.FaceWraper(fmodel, chance=1.0)
     worker.addOperator(facer)
 
-    resizer = wraper.ResizeWraper(w=SIZE[0], h=SIZE[1], chance=1.0)
-    worker.addOperator(resizer)
+    eraser = wraper.EraseWraper(chance=1.0)
+    worker.addOperator(eraser)
+
+    bg_imgs = "/Users/songbin/dev/data/bg"
+    bgwraper = wraper.BackGroundWraper(chance=1.0)
+    bgwraper.loadImgs(bg_imgs, (800, 600))
+    worker.addOperator(bgwraper)
+
+    #resizer = wraper.ResizeWraper(w=SIZE[0], h=SIZE[1], chance=1.0)
+    #worker.addOperator(resizer)
 
     noiser = wraper.NoiseWraper(chance=1.0, maxSigma=6)
     worker.addOperator(noiser)
@@ -89,11 +97,13 @@ def getChain1():
     color = wraper.ColorWraper(chance=1.0)
     worker.addOperator(color)
 
-    eraser = wraper.EraseWraper(chance=1.0)
-    worker.addOperator(eraser)
 
+    x = (-20, 20)
+    y = (-20, 20)
+    z = (-20, 20)
+    rotate3d = wraper.Rotate3DWraper(chance=1.0, x=x, y=y, z=z)
     #rotate3d = wraper.Rotate3DWraper(chance=1.0)
-    rotate3d = wraper.Rotate3DXWraper(chance=1.0)
+    #rotate3d = wraper.Rotate3DXWraper(chance=1.0)
     worker.addOperator(rotate3d)
     return worker
 
@@ -128,7 +138,7 @@ def testPerformance(imgs):
 
 
 def testEffect(imgs):
-    worker = getChain0()
+    worker = getChain1()
     log.info("%s" % (worker))
     for i in range(len(imgs)):
         img = imgs[i]
@@ -200,7 +210,7 @@ def testBg():
     bg_imgs = "/Users/songbin/dev/data/bg"
 
     bgwarper = wraper.BackGroundWraper(chance=1.0)
-    bgwarper.loadImgs(bg_imgs, (480, 360))
+    bgwarper.loadImgs(bg_imgs, (800, 600))
 
     for i in range(len(imgs)):
         img = imgs[i]
@@ -215,7 +225,8 @@ def testBg():
 
 def testImgs():
     """test background wraper"""
-    adir = "../data/driver/"
+    #adir = "../data/driver/"
+    adir = "/Users/songbin/dev/data/docID/small/"
     imgs = loadImgs(adir)
     testEffect(imgs)
     #testPerformance(imgs)
@@ -224,8 +235,8 @@ def testImgs():
 
 def main():
     #test()
-    #testImgs()
-    testBg()
+    testImgs()
+    #testBg()
     return
 
 

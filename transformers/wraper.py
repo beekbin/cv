@@ -9,9 +9,11 @@ import random
 import math
 import string
 import numpy as np
-import transform as tr
 import cv2
 import os
+
+import transform as tr
+import utils
 
 log = logging.getLogger(__file__)
 log.setLevel(logging.DEBUG)
@@ -363,7 +365,7 @@ class Rotate3DXWraper:
     def __init__(self, chance=0.5, fac=(0.05, 0.2)):
         self.chance = chance 
         self.fac = fac
-        self.scale_range = (0.7, 1.0)
+        self.scale_range = (0.8, 1.0)
         return
 
     def __str__(self):
@@ -442,23 +444,6 @@ class Chain:
         for op in self.operators:
             img2 = op.run(img2)
         return img2
-
-
-def _getFileNames(adir):
-    result = []
-    if os.path.isfile(adir):
-        result.append(adir)
-        return
-
-    if not os.path.isdir(adir):
-        log.error("%s is not a directory" % (adir))
-        return result
-    
-    for fname in os.listdir(adir):
-        fpath = os.path.join(adir, fname)
-        if os.path.isfile(fpath):
-            result.append(fpath)
-    return result
 
 
 class RandomObjects:
@@ -564,7 +549,7 @@ class BackGroundWraper:
         return
 
     def loadImgs(self, fdir, size=None):
-        fnames = _getFileNames(fdir)
+        fnames = utils.getFileNames(fdir)
         if len(fnames) < 1:
             log.error("Failed to load bg-images.")
             return
