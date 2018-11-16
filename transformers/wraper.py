@@ -769,8 +769,10 @@ class GlareWraper:
         log.info("%d flares" % (len(self.flares)))
         return
 
-
     def addGlare(self, img, flag=True):
+        """if flag == True, then will add a glare;
+           else, will add a shadow.
+        """
         flare = random.choice(self.flares)
         h, w = img.shape[0:2]
 
@@ -792,7 +794,7 @@ class GlareWraper:
             z = z * weight + flare
         else:
             #weight = 0.7
-            weight = random.randint(60, 100) / 100.0
+            weight = random.randint(70, 100) / 100.0
             z = z * weight - flare
 
         z = np.clip(z, 0, 255)
