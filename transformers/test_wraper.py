@@ -212,12 +212,15 @@ def testBg():
     bgwarper = wraper.BackGroundWraper(chance=1.0)
     bgwarper.loadImgs(bg_imgs, (800, 600))
 
+    noiser = wraper.NoiseWraper(chance=1.0, maxSigma=13)
+
     for i in range(len(imgs)):
         img = imgs[i]
 
         img = tr.resize(img, (480, 360))
         img2 = img.copy()
         img2 = bgwarper.run(img2)
+        img2 = noiser.run(img2)
 
         tr.showImgs([img, img2])
     return
@@ -235,8 +238,8 @@ def testImgs():
 
 def main():
     #test()
-    testImgs()
-    #testBg()
+    #testImgs()
+    testBg()
     return
 
 

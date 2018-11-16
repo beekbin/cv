@@ -39,21 +39,32 @@ class NoiseWraper:
     def __init__(self, chance=0.5, maxSigma=3):
         self.chance = chance
         self.maxSigma = maxSigma
+        self.meanRange = (-3, 3)
         return
-    
+
     def __str__(self):
         msg = "NoiseWraper: %.2f" % (self.chance)
-        return msg 
+        return msg
+
+    def setMeanRange(self, range):
+        if len(range) != 2:
+            log.error("range should be [a, b]")
+            return
+        self.meanRange = range
+        return
 
     def run(self, img):
         if random.uniform(0, 1.0) > self.chance:
             return img
 
-        mean = np.mean(img)
-        sigma = min(0.05 * mean, self.maxSigma)  
-        #sigma = random.uniform(1, self.maxSigma)
-        return tr.addNoise(img, sigma)
-    
+        mean = random.uniform(self.meanRange[0], self.meanRange[1])
+        sigma = random.uniform(self.maxSigma/2.0, self.maxSigma)
+
+        #amean = np.mean(img)
+        #log.info("amean: %.3f" % (amean))
+        #sigma = min(0.05 * amean, self.maxSigma)  
+        return tr.addNoise(img, sigma, mean)
+
 
 class ColorWraper:
     def __init__(self, chance=0.5, gamma_chance=0.2):
@@ -118,14 +129,21 @@ class ShadowWraper:
     def __init__(self, chance=0.5):
         self.chance = chance
         self.fac_low = 0.5
-        self.fac_high = 1.1
-        self.mean = (self.fac_low + self.fac_high)/2
+        self.fac_high = 1.5
+        self.min_brightness = 0.35
+        self.max_brightness = 1.5
+        self.mean = (self.fac_low + self.fac_high) / 2
         self.sigma = (self.mean - self.fac_low)**0.5
-        return    
+        return
 
     def __str__(self):
         msg = "ShadowWraper: %.2f" % (self.chance)
         return msg
+
+    def setBrightnessRange(self, min_b, max_b):
+        self.min_brightness = min_b
+        self.max_brightness = max_b
+        return
 
     def run(self, img):
         if random.random() > self.chance:
@@ -134,17 +152,19 @@ class ShadowWraper:
         fac = random.uniform(self.fac_low, self.fac_high)
         log.debug("shadow factor: %.3f" % (fac))
 
+        a, b = self.min_brightness, self.max_brightness
         choice = random.randint(1, 4)
         if choice == 1:
-            img2 = tr.gradualShadeH(img, fac, 0)
+            img2 = tr.gradualShadeH(img, fac, 0, a, b)
         elif choice == 2:
-            img2 = tr.gradualShadeH(img, fac, 1)
-        elif choice == 4:
-            img2 = tr.gradualShadeV(img, fac, 0)
+            img2 = tr.gradualShadeH(img, fac, 1, a, b)
+        elif choice == 3:
+            img2 = tr.gradualShadeV(img, fac, 0, a, b)
         else:
-            img2 = tr.gradualShadeV(img, fac, 1)
+            img2 = tr.gradualShadeV(img, fac, 1, a, b)
 
         return img2
+
 
 
 class ShrinkWraper:
@@ -454,23 +474,39 @@ class RandomObjects:
         self.chars = string.ascii_uppercase + string.digits
         return
 
-    def drawLines(self, img):
+    def drawVerticalLine(self, img, num):
         h, w, _ = img.shape
-        num = random.randint(2, 4)
         for _ in range(num):
             x1 = random.randint(5, w-5)
             x2 = random.randint(5, w-5)
             rcolor = tr._genRandomColor()
-            thick = random.randint(1, 10)
+            thick = random.randint(1, 15)
             cv2.line(img, (x1, 0), (x2, h), rcolor, thick)
+        return
 
-        num = random.randint(2, 4)
+    def drawHorizontalLine(self, img, num):
+        h, w, _ = img.shape
         for _ in range(num):
             y1 = random.randint(5, h-5)
             y2 = random.randint(5, h-5)
             rcolor = tr._genRandomColor()
-            thick = random.randint(1, 10)
+            thick = random.randint(1, 15)
             cv2.line(img, (0, y1), (w, y2), rcolor, thick) 
+        return
+
+    def drawLines(self, img):
+        num = random.randint(2, 4)
+        self.drawVerticalLine(img, num)
+
+        num = random.randint(2, 4)
+        self.drawHorizontalLine(img, num)
+        return
+
+    def drawSimpleLines(self, img, num):
+        if random.random() < 0.5:
+            self.drawVerticalLine(img, num)
+        else:
+            self.drawHorizontalLine(img, num)
         return
 
     def randomString(self, size):

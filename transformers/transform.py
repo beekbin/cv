@@ -36,8 +36,9 @@ log.setLevel(logging.DEBUG)
 
 def loadImage(fname):
     img = cv2.imread(fname, cv2.IMREAD_COLOR)
-    # img.shape = (w, h, 3)
-    log.debug(img.shape)
+    if img is None:
+        log.error("failed to load img: %s" % (fname))
+        return None
     return img
 
 
@@ -87,7 +88,7 @@ def toTensor(img):
 
 def addNoise(img, sigma=2.0, mean=0):
     """Add Gaussian Noise to the image"""
-    img2 = np.random.normal(0, sigma, size=img.shape)
+    img2 = np.random.normal(mean, sigma, size=img.shape)
 
     img2 += img
     img2 = np.uint8(img2.clip(0, 255))
@@ -221,53 +222,58 @@ def adjustAspectRatio(img, ratio, bg_img=None):
     return img2
 
 
-def gradualShadeV(img, brightness, direction=0):
+def gradualShadeV(img, brightness, direction=0, min_b=0.35, max_b=1.5):
     """add gradual shadow vertically.
        direction: 0: get darker from top to bottom;
                   1: get darker from bottom to top;
+       minimum and maximum brightness:0.35, 1.5
     """
     h, _, _ = img.shape
     img2 = np.float32(img)
 
-    if direction % 2 == 0:
-        alpha = -1.0 * brightness / 5.0
-        sign = -1
-    else:
-        alpha = -4.0 * brightness / 5.0
-        sign = 1
+    half = brightness / 2.0
+    alpha = max(min_b, 1 - half)
+    beta = min(max_b, alpha + brightness)
+    delta = (beta - alpha) / float(h)
 
-    delta = brightness / float(h)
+    t = alpha
+    if direction % 2 == 0:
+        t = beta
+        delta = -1 * delta
 
     for j in range(h):
-        alpha += delta
-        t = 1 + sign * alpha
+        t += delta
         img2[j, :, :] = img2[j, :, :] * t
 
     img2 = np.uint8(img2.clip(0, 255))
     return img2
 
 
-def gradualShadeH(img, brightness, direction=0):
+def gradualShadeH(img, brightness, direction=0, min_b=0.35, max_b=1.5):
     """
     add gradual shadow horizontally.
     direction: 0: get darker from left to right;
                1: get darker from right to left;
+    minimum and maximum brightness:0.35, 1.5
     """
     _, w, _ = img.shape
     img2 = np.float32(img)
 
-    if direction % 2 == 0:
-        alpha = -1.0 * brightness / 5.0
-        sign = -1
-    else:
-        alpha = -4.0 * brightness / 5.0
-        sign = 1
+    min_b = 0.35
+    max_b = 1.5
 
-    delta = brightness / float(w)
+    half = brightness / 2.0
+    alpha = max(min_b, 1 - half)
+    beta = min(max_b, alpha + brightness)
+    delta = (beta - alpha) / float(w)
+
+    t = alpha
+    if direction % 2 == 0:
+        t = beta
+        delta = -1 * delta
 
     for i in range(w):
-        alpha += delta
-        t = 1 + sign * alpha
+        t += delta
         img2[:, i, :] = img2[:, i, :] * t
 
     img2 = np.uint8(img2.clip(0, 255))
@@ -338,6 +344,33 @@ def rotate2D(img, angle, scale=0.90):
     img2 = cv2.warpAffine(img, tmp, (w, h), borderValue=fcolor)
     return img2
 
+
+def rotate2DBound(image, angle):
+    """make sure the whole image remain in the bound"""
+    # grab the dimensions of the image and then determine the
+    # center
+    (h, w) = image.shape[:2]
+    (cX, cY) = (w // 2, h // 2)
+
+    # grab the rotation matrix (applying the negative of the
+    # angle to rotate clockwise), then grab the sine and cosine
+    # (i.e., the rotation components of the matrix)
+    M = cv2.getRotationMatrix2D((cX, cY), -angle, 1.0)
+    cos = np.abs(M[0, 0])
+    sin = np.abs(M[0, 1])
+
+    # compute the new bounding dimensions of the image
+    nW = int((h * sin) + (w * cos))
+    nH = int((h * cos) + (w * sin))
+
+    # adjust the rotation matrix to take into account translation
+    M[0, 2] += (nW / 2) - cX
+    M[1, 2] += (nH / 2) - cY
+
+    # perform the actual rotation and return the image
+    img2 = cv2.warpAffine(image, M, (nW, nH))
+    img2 = cv2.resize(img2, (w, h))
+    return img2
 
 def rotate2DX(img, fac):
     """
