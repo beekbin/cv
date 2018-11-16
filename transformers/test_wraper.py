@@ -226,6 +226,22 @@ def testBg():
     return
 
 
+def testGlare():
+    #input_dir = "./data/ids/"
+    input_dir = "/Users/songbin/dev/data/docID/small/"
+    imgs = loadImgs(input_dir)
+
+    glare = wraper.GlareWraper(chance=1.0)
+    glare.genFlareTemplates(50)
+
+    for _ in range(2):
+        for img in imgs:
+            img2 = img.copy()
+            glare.run(img2)
+            tr.showImgs([img, img2])
+    return
+
+
 def testImgs():
     """test background wraper"""
     #adir = "../data/driver/"
@@ -239,7 +255,8 @@ def testImgs():
 def main():
     #test()
     #testImgs()
-    testBg()
+    #testBg()
+    testGlare()
     return
 
 
